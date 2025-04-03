@@ -48,7 +48,7 @@ ngram_ranges = {
     "1-gram": (1, 1),
     "2-gram": (2, 2),
     "3-gram": (3, 3),
-    ">=5-gram": (5, 6)
+    ">=5-gram": (5, 5)
 }
 
 # Dictionaries to store the results
