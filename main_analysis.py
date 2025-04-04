@@ -21,7 +21,6 @@ data_path = "yelp/"  # Modify this path to the location of your complete Yelp da
 # ---------------------------
 # Load the complete business dataset
 business_df = pd.read_json(f"{data_path}/yelp_academic_dataset_business.json", lines=True)
-
 # Load the check-in dataset to analyze check-in frequencies
 checkin_df = pd.read_json(f"{data_path}/yelp_academic_dataset_checkin.json", lines=True)
 
@@ -46,7 +45,7 @@ def extract_price_range(attr):
 
 business_df['price_range'] = business_df['attributes'].apply(extract_price_range)
 
-# Extracting check-in frequencies: count the number of check-ins for each business
+# Extract check-in frequencies: count the number of check-ins for each business
 checkin_df['checkin_count'] = checkin_df['date'].str.split(',').apply(len)
 checkin_features = checkin_df.groupby('business_id')['checkin_count'].sum().reset_index()
 
@@ -54,10 +53,11 @@ checkin_features = checkin_df.groupby('business_id')['checkin_count'].sum().rese
 merged_df = pd.merge(business_df, checkin_features, on='business_id', how='left')
 merged_df.fillna(0, inplace=True)
 
-# Create labels for high and low ratings:
-# High Rating (Label = 1): stars >= 4; Low Rating (Label = 0): stars <= 2;
-merged_df['label'] = merged_df['stars'].apply(lambda x: 1 if x >= 4 else (0 if x <= 2 else np.nan))
-merged_df.dropna(subset=['label'], inplace=True)
+# Create three-level labels:
+# Low (0): stars <= 2, Medium (1): 2 < stars < 4, High (2): stars >= 4
+merged_df['label'] = merged_df['stars'].apply(lambda x: 2 if x >= 4 else (0 if x <= 2 else 1))
+# Print count of medium ratings to verify
+print("Medium rating count:", merged_df[merged_df['label'] == 1].shape[0])
 print("merged_df columns:", merged_df.columns)
 
 
@@ -96,71 +96,98 @@ merged_df['checkin_count_range'] = pd.qcut(merged_df['checkin_count'], q=4,
 # ---------------------------
 # 3. Feature Value Probability Analysis
 # ---------------------------
-MIN_SUPPORT_COUNT = 200  # Minimum support count threshold
+
+def compute_required_min_support(se_threshold=0.05):
+    """
+    Computes the minimum support count required so that the worst-case standard error
+    (which occurs at p=0.5) is below se_threshold.
+
+    Parameters:
+    - se_threshold (float): The desired maximum standard error.
+
+    Returns:
+    - required_count (int): The minimum count required.
+    """
+    required_count = 0.25 / (se_threshold ** 2)
+    return int(np.ceil(required_count))
 
 
-def calculate_value_probability(df, feature):
-    value_counts = df.groupby([feature, 'label'], observed=False).size().reset_index(name='count')
-    total_counts = df.groupby(feature, observed=False).size().reset_index(name='total_count')
+# Example: set a desired standard error threshold (e.g., 0.05)
+se_threshold = 0.03
+min_support_required = compute_required_min_support(se_threshold)
+print(
+    f"To achieve a worst-case standard error below {se_threshold}, each feature value should have at least {min_support_required} observations.")
+
+
+MIN_SUPPORT_COUNT = min_support_required  # Minimum support count threshold
+
+
+def calculate_value_probability(df_filtered, df_total, feature):
+    """
+    Compute the conditional probability of each feature value leading to a particular label.
+    df_filtered: DataFrame with only low and high ratings (labels 0 and 2, and medium 1 as well if present)
+    df_total: Full DataFrame including all ratings for computing total counts.
+    """
+    value_counts = df_filtered.groupby([feature, 'label'], observed=False).size().reset_index(name='count')
+    total_counts = df_total.groupby(feature, observed=False).size().reset_index(name='total_count')
     result = pd.merge(value_counts, total_counts, on=feature)
     result = result[result['total_count'] >= MIN_SUPPORT_COUNT]
     result['probability'] = result['count'] / result['total_count']
-    high_prob = result[result['label'] == 1].sort_values(by='probability', ascending=False)
-    low_prob = result[result['label'] == 0].sort_values(by='probability', ascending=False)
-    return high_prob, low_prob
+    # Get probabilities for each label separately
+    prob_low = result[result['label'] == 0].sort_values(by='probability', ascending=False)
+    prob_med = result[result['label'] == 1].sort_values(by='probability', ascending=False)
+    prob_high = result[result['label'] == 2].sort_values(by='probability', ascending=False)
+    return prob_low, prob_med, prob_high
 
+
+# Use the full merged_df for total counts
+merged_df_all = merged_df.copy()
 
 features_to_check = ['main_category', 'price_range', 'city', 'operation_hour_bins', 'checkin_count_range']
 for feature in features_to_check:
-    high_probs, low_probs = calculate_value_probability(merged_df, feature)
+    low_probs, med_probs, high_probs = calculate_value_probability(merged_df, merged_df_all, feature)
     print(f"\nFeature: {feature}")
-    print("High Rating Probabilities:\n", high_probs.head(10))
     print("Low Rating Probabilities:\n", low_probs.head(10))
+    print("Medium Rating Probabilities:\n", med_probs.head(10))
+    print("High Rating Probabilities:\n", high_probs.head(10))
 
-    # Combine high and low probability results
-    combined = pd.concat([high_probs, low_probs])
-    pivot_df = combined.pivot(index=feature, columns='label', values='probability').fillna(0)
-    pivot_df = pivot_df.rename(columns={0: 'Low Rating', 1: 'High Rating'})
-
+    # For features with many unique values (main_category and city),
+    # we plot two charts: one for the top 10 (highest high rating probability) and one for the bottom 10 (lowest high rating probability)
     if feature in ['main_category', 'city']:
-        # For features with many values, create a pivot table for the high rating probability
-        combined = pd.concat([high_probs, low_probs])
+        combined = pd.concat([low_probs, med_probs, high_probs])
         pivot_df = combined.pivot(index=feature, columns='label', values='probability').fillna(0)
-        pivot_df = pivot_df.rename(columns={0: 'Low Rating', 1: 'High Rating'})
-        # Sort descending by High Rating probability
-        pivot_sorted = pivot_df.sort_values(by='High Rating', ascending=False)
+        pivot_df = pivot_df.rename(columns={0: 'Low Rating', 1: 'Medium Rating', 2: 'High Rating'})
+        # Sort by High Rating probability in ascending order
+        pivot_sorted = pivot_df.sort_values(by='High Rating', ascending=True)
 
-        # Top 10: values with the highest High Rating probabilities
-        top_10 = pivot_sorted.head(10).sort_values(by='High Rating', ascending=True)
-        # Bottom 10: values with the lowest High Rating probabilities
-        bottom_10 = pivot_sorted.tail(10).sort_values(by='High Rating', ascending=True)
+        top_10 = pivot_sorted.tail(10).sort_values(by='High Rating', ascending=True)
+        bottom_10 = pivot_sorted.head(10).sort_values(by='High Rating', ascending=True)
 
-        # Create vertical subplots: top 10 on top and bottom 10 on bottom
         fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 12))
-
-        # Plot top 10 (highest high rating probability) on the first subplot
-        top_10.plot(kind='barh', ax=axes[0], legend=True, color={'High Rating': 'green', 'Low Rating': 'red'})
+        top_10.plot(kind='barh', ax=axes[0],
+                    color={'High Rating': 'green', 'Medium Rating': 'blue', 'Low Rating': 'red'})
         axes[0].set_title(f"Top 10 {feature} Values (Highest High Rating Probability)")
         axes[0].set_xlabel("Probability")
         axes[0].set_ylabel(feature)
 
-        # Plot bottom 10 (lowest high rating probability) on the second subplot
-        bottom_10.plot(kind='barh', ax=axes[1], legend=True, color={'High Rating': 'green', 'Low Rating': 'red'})
+        bottom_10.plot(kind='barh', ax=axes[1],
+                       color={'High Rating': 'green', 'Medium Rating': 'blue', 'Low Rating': 'red'})
         axes[1].set_title(f"Bottom 10 {feature} Values (Lowest High Rating Probability)")
         axes[1].set_xlabel("Probability")
         axes[1].set_ylabel(feature)
 
-        # Add annotation to indicate omitted middle values
-        plt.figtext(0.5, 0.48, '... (omitted middle values) ...', ha='center', fontsize=12, color='gray')
+        plt.figtext(0.2, 0.5, '... (omitted middle values) ...', ha='center', fontsize=12, color='black')
         plt.tight_layout()
         plt.show()
     else:
-        # For features with fixed order (price_range, operation_hour_bins, checkin_count_range),
-        # we reindex according to the desired order.
+        # For features with fixed order (price_range, operation_hour_bins, checkin_count_range)
         if feature == 'price_range':
-            order = ['1', '2', '3', '4']  # Adjust as needed
+            order = ['1', '2', '3', '4']  # Adjust as necessary
         else:
             order = ['Low', 'Medium', 'High', 'Very High']
+        combined = pd.concat([low_probs, med_probs, high_probs])
+        pivot_df = combined.pivot(index=feature, columns='label', values='probability').fillna(0)
+        pivot_df = pivot_df.rename(columns={0: 'Low Rating', 1: 'Medium Rating', 2: 'High Rating'})
         pivot_ordered = pivot_df.reindex(order)
         plt.figure(figsize=(10, 6))
         pivot_ordered.plot(kind='bar', rot=0)
