@@ -1,6 +1,11 @@
 import pandas as pd
+import os
+import json
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 import warnings
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 
 # Ignore warning messages for cleaner output
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -74,3 +79,65 @@ for key in ngram_ranges.keys():
     print(f"\nLow Rating Phrases ({key}):")
     for phrase in low_phrases[key]:
         print(f"- {phrase}")
+
+
+def generate_wordcloud(df, column, ngram_range=(2, 2), top_n=50):
+    """
+    Generate a word cloud from TF-IDF scores for a given n-gram range.
+
+    Parameters:
+      df (pd.DataFrame): DataFrame containing reviews.
+      column (str): Text column to analyze.
+      ngram_range (tuple): ngram range for analysis, e.g., (2,2) for bigrams.
+      top_n (int): Maximum number of phrases to include.
+
+    Returns:
+      WordCloud object.
+    """
+    vectorizer = TfidfVectorizer(stop_words='english', ngram_range=ngram_range)
+    tfidf_matrix = vectorizer.fit_transform(df[column].dropna())
+    phrases = vectorizer.get_feature_names_out()
+    # Sum TF-IDF scores for each phrase across all documents
+    scores = np.array(tfidf_matrix.sum(axis=0)).flatten()
+    phrase_scores = dict(zip(phrases, scores))
+    # Keep only the top_n phrases by score
+    top_phrases = dict(sorted(phrase_scores.items(), key=lambda item: item[1], reverse=True)[:top_n])
+
+    # Create and return the word cloud
+    wc = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(top_phrases)
+    return wc
+
+
+# ---------------------------
+# 2. Generate Word Clouds for 2-gram and 3-gram (High Rating Reviews)
+# ---------------------------
+# High Rating 2-gram Word Cloud
+wc_2gram = generate_wordcloud(high_rating_reviews, 'text', ngram_range=(2, 2), top_n=30)
+plt.figure(figsize=(12, 6))
+plt.imshow(wc_2gram, interpolation='bilinear')
+plt.axis('off')
+plt.title('High Rating Reviews - 2-gram Word Cloud')
+plt.show()
+
+# High Rating 3-gram Word Cloud
+# wc_3gram = generate_wordcloud(high_rating_reviews, 'text', ngram_range=(3, 3), top_n=30)
+# plt.figure(figsize=(12, 6))
+# plt.imshow(wc_3gram, interpolation='bilinear')
+# plt.axis('off')
+# plt.title('High Rating Reviews - 3-gram Word Cloud')
+# plt.show()
+
+wc_2gram = generate_wordcloud(low_rating_reviews, 'text', ngram_range=(2, 2), top_n=30)
+plt.figure(figsize=(12, 6))
+plt.imshow(wc_2gram, interpolation='bilinear')
+plt.axis('off')
+plt.title('Low Rating Reviews - 2-gram Word Cloud')
+plt.show()
+
+# High Rating 3-gram Word Cloud
+# wc_3gram = generate_wordcloud(low_rating_reviews, 'text', ngram_range=(3, 3), top_n=30)
+# plt.figure(figsize=(12, 6))
+# plt.imshow(wc_3gram, interpolation='bilinear')
+# plt.axis('off')
+# plt.title('Low Rating Reviews - 3-gram Word Cloud')
+# plt.show()
