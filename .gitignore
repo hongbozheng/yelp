@@ -1,3 +1,5 @@
-/yelp
-/yelp_illinois
-/.idea
+.DS_Store
+.idea/
+__pycache__/
+yelp/
+yelp_illinois/
