@@ -163,18 +163,22 @@ for feature in features_to_check:
         top_10 = pivot_sorted.tail(10).sort_values(by='High Rating', ascending=True)
         bottom_10 = pivot_sorted.head(10).sort_values(by='High Rating', ascending=True)
 
-        fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 12))
+        fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(12, 12))
         top_10.plot(kind='barh', ax=axes[0],
                     color={'High Rating': 'green', 'Medium Rating': 'blue', 'Low Rating': 'red'})
-        axes[0].set_title(f"Top 10 {feature} Values (Highest High Rating Probability)")
-        axes[0].set_xlabel("Probability")
-        axes[0].set_ylabel(feature)
+        axes[0].set_title(f"Top 10 {feature} Values (Highest High Rating Probability)", fontsize=18)
+        axes[0].set_xlabel("Probability", fontsize=16)
+        axes[0].set_ylabel(feature, fontsize=16)
+        axes[0].tick_params(axis='x', labelsize=14)
+        axes[0].tick_params(axis='y', labelsize=14)
 
         bottom_10.plot(kind='barh', ax=axes[1],
                        color={'High Rating': 'green', 'Medium Rating': 'blue', 'Low Rating': 'red'})
-        axes[1].set_title(f"Bottom 10 {feature} Values (Lowest High Rating Probability)")
-        axes[1].set_xlabel("Probability")
-        axes[1].set_ylabel(feature)
+        axes[1].set_title(f"Bottom 10 {feature} Values (Lowest High Rating Probability)", fontsize=18)
+        axes[1].set_xlabel("Probability", fontsize=16)
+        axes[1].set_ylabel(feature, fontsize=16)
+        axes[1].tick_params(axis='x', labelsize=14)
+        axes[1].tick_params(axis='y', labelsize=14)
 
         plt.figtext(0.2, 0.5, '... (omitted middle values) ...', ha='center', fontsize=12, color='black')
         plt.tight_layout()
@@ -244,34 +248,34 @@ plt.show()
 # ---------------------------
 # 5. Attribute Combinations Using Apriori Algorithm
 # ---------------------------
-merged_df['price_range'] = merged_df['price_range'].astype(str)
-merged_df['attribute_combo'] = (merged_df['main_category'].astype(str) + '_' +
-                                merged_df['price_range'] + '_' +
-                                merged_df['checkin_count_range'].astype(str) + '_' +
-                                merged_df['operation_hour_bins'].astype(str) + '_' +
-                                merged_df['city'].astype(str))
-
-one_hot = pd.get_dummies(merged_df['attribute_combo'])
-from scipy.sparse import csr_matrix
-
-one_hot_sparse = pd.DataFrame.sparse.from_spmatrix(csr_matrix(one_hot.values), columns=one_hot.columns)
-one_hot_sparse = one_hot_sparse.astype(bool)
-
-min_support_value = 0.001  # Lower threshold to capture more itemsets
-frequent_itemsets = apriori(one_hot_sparse, min_support=min_support_value, use_colnames=True, low_memory=True)
-if not frequent_itemsets.empty:
-    frequent_itemsets['num_features'] = frequent_itemsets['itemsets'].apply(lambda x: len(x))
-    filtered_itemsets = frequent_itemsets[
-        (frequent_itemsets['num_features'] >= 5) & (frequent_itemsets['num_features'] <= 6)]
-    if not filtered_itemsets.empty:
-        try:
-            rules = association_rules(filtered_itemsets, metric="lift", min_threshold=1.0, support_only=True)
-            rules = rules.sort_values(by='lift', ascending=False)
-            print("\nTop 20 Association Rules Related to High/Low Ratings:")
-            print(rules.head(20))
-        except KeyError as e:
-            print(f"KeyError during rule generation: {e}")
-    else:
-        print("No frequent itemsets of size 5 or 6 found. Consider lowering the min_support threshold.")
-else:
-    print("No frequent itemsets found. Consider lowering the min_support threshold.")
+# merged_df['price_range'] = merged_df['price_range'].astype(str)
+# merged_df['attribute_combo'] = (merged_df['main_category'].astype(str) + '_' +
+#                                 merged_df['price_range'] + '_' +
+#                                 merged_df['checkin_count_range'].astype(str) + '_' +
+#                                 merged_df['operation_hour_bins'].astype(str) + '_' +
+#                                 merged_df['city'].astype(str))
+#
+# one_hot = pd.get_dummies(merged_df['attribute_combo'])
+# from scipy.sparse import csr_matrix
+#
+# one_hot_sparse = pd.DataFrame.sparse.from_spmatrix(csr_matrix(one_hot.values), columns=one_hot.columns)
+# one_hot_sparse = one_hot_sparse.astype(bool)
+#
+# min_support_value = 0.001  # Lower threshold to capture more itemsets
+# frequent_itemsets = apriori(one_hot_sparse, min_support=min_support_value, use_colnames=True, low_memory=True)
+# if not frequent_itemsets.empty:
+#     frequent_itemsets['num_features'] = frequent_itemsets['itemsets'].apply(lambda x: len(x))
+#     filtered_itemsets = frequent_itemsets[
+#         (frequent_itemsets['num_features'] >= 5) & (frequent_itemsets['num_features'] <= 6)]
+#     if not filtered_itemsets.empty:
+#         try:
+#             rules = association_rules(filtered_itemsets, metric="lift", min_threshold=1.0, support_only=True)
+#             rules = rules.sort_values(by='lift', ascending=False)
+#             print("\nTop 20 Association Rules Related to High/Low Ratings:")
+#             print(rules.head(20))
+#         except KeyError as e:
+#             print(f"KeyError during rule generation: {e}")
+#     else:
+#         print("No frequent itemsets of size 5 or 6 found. Consider lowering the min_support threshold.")
+# else:
+#     print("No frequent itemsets found. Consider lowering the min_support threshold.")

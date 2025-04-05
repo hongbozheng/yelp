@@ -113,10 +113,10 @@ def generate_wordcloud(df, column, ngram_range=(2, 2), top_n=50):
 # ---------------------------
 # High Rating 2-gram Word Cloud
 wc_2gram = generate_wordcloud(high_rating_reviews, 'text', ngram_range=(2, 2), top_n=30)
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(10, 5))
 plt.imshow(wc_2gram, interpolation='bilinear')
 plt.axis('off')
-plt.title('High Rating Reviews - 2-gram Word Cloud')
+plt.title('High Rating Reviews - 2-gram Word Cloud', fontsize=20)
 plt.show()
 
 # High Rating 3-gram Word Cloud
@@ -131,7 +131,7 @@ wc_2gram = generate_wordcloud(low_rating_reviews, 'text', ngram_range=(2, 2), to
 plt.figure(figsize=(12, 6))
 plt.imshow(wc_2gram, interpolation='bilinear')
 plt.axis('off')
-plt.title('Low Rating Reviews - 2-gram Word Cloud')
+plt.title('Low Rating Reviews - 2-gram Word Cloud', fontsize=20)
 plt.show()
 
 # High Rating 3-gram Word Cloud
