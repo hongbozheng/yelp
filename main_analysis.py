@@ -163,7 +163,7 @@ for feature in features_to_check:
         top_10 = pivot_sorted.tail(10).sort_values(by='High Rating', ascending=True)
         bottom_10 = pivot_sorted.head(10).sort_values(by='High Rating', ascending=True)
 
-        fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(12, 12))
+        fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(12, 12), sharex=True)
         top_10.plot(kind='barh', ax=axes[0],
                     color={'High Rating': 'green', 'Medium Rating': 'blue', 'Low Rating': 'red'})
         axes[0].set_title(f"Top 10 {feature} Values (Highest High Rating Probability)", fontsize=18)
@@ -171,6 +171,7 @@ for feature in features_to_check:
         axes[0].set_ylabel(feature, fontsize=16)
         axes[0].tick_params(axis='x', labelsize=14)
         axes[0].tick_params(axis='y', labelsize=14)
+        axes[0].legend(fontsize=14, loc='lower right')
 
         bottom_10.plot(kind='barh', ax=axes[1],
                        color={'High Rating': 'green', 'Medium Rating': 'blue', 'Low Rating': 'red'})
@@ -179,6 +180,7 @@ for feature in features_to_check:
         axes[1].set_ylabel(feature, fontsize=16)
         axes[1].tick_params(axis='x', labelsize=14)
         axes[1].tick_params(axis='y', labelsize=14)
+        axes[1].legend(fontsize=14, loc='lower right')
 
         plt.figtext(0.2, 0.5, '... (omitted middle values) ...', ha='center', fontsize=12, color='black')
         plt.tight_layout()
@@ -236,12 +238,13 @@ info_gain_scores = calculate_information_gain_ratio(merged_df, features_to_check
 info_gain_sorted = sorted(info_gain_scores.items(), key=lambda x: x[1], reverse=True)
 info_gain_df = pd.DataFrame(info_gain_sorted, columns=['Feature', 'Info_Gain_Ratio'])
 
-plt.figure(figsize=(10, 6))
+plt.figure(figsize=(12, 6))
 sns.barplot(x='Feature', y='Info_Gain_Ratio', data=info_gain_df, palette='viridis')
-plt.title('Information Gain Ratio for Selected Features')
-plt.xlabel('Feature')
-plt.ylabel('Information Gain Ratio')
-plt.xticks(rotation=45)
+plt.title('Information Gain Ratio for Selected Features', fontsize=18)
+plt.xlabel('Feature', fontsize=18)
+plt.ylabel('Information Gain Ratio', fontsize=18)
+plt.xticks(rotation=45, fontsize=16)  # x-tick font size and rotation
+plt.yticks(fontsize=16)               # y-tick font size
 plt.tight_layout()
 plt.show()
 
