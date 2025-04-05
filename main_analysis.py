@@ -157,13 +157,16 @@ for feature in features_to_check:
         combined = pd.concat([low_probs, med_probs, high_probs])
         pivot_df = combined.pivot(index=feature, columns='label', values='probability').fillna(0)
         pivot_df = pivot_df.rename(columns={0: 'Low Rating', 1: 'Medium Rating', 2: 'High Rating'})
+
         # Sort by High Rating probability in ascending order
         pivot_sorted = pivot_df.sort_values(by='High Rating', ascending=True)
 
-        top_10 = pivot_sorted.tail(10).sort_values(by='High Rating', ascending=True)
-        bottom_10 = pivot_sorted.head(10).sort_values(by='High Rating', ascending=True)
+        top_10 = pivot_sorted.tail(7).sort_values(by='High Rating', ascending=True)
+        bottom_10 = pivot_sorted.head(7).sort_values(by='High Rating', ascending=True)
 
         fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(12, 12))
+
+        # Plot top 10
         top_10.plot(kind='barh', ax=axes[0],
                     color={'High Rating': 'green', 'Medium Rating': 'blue', 'Low Rating': 'red'})
         axes[0].set_title(f"Top 10 {feature} Values (Highest High Rating Probability)", fontsize=18)
@@ -171,7 +174,9 @@ for feature in features_to_check:
         axes[0].set_ylabel(feature, fontsize=16)
         axes[0].tick_params(axis='x', labelsize=14)
         axes[0].tick_params(axis='y', labelsize=14)
+        axes[0].set_xlim(0, 0.9)  # Ensure the x-axis is consistent
 
+        # Plot bottom 10
         bottom_10.plot(kind='barh', ax=axes[1],
                        color={'High Rating': 'green', 'Medium Rating': 'blue', 'Low Rating': 'red'})
         axes[1].set_title(f"Bottom 10 {feature} Values (Lowest High Rating Probability)", fontsize=18)
@@ -179,6 +184,7 @@ for feature in features_to_check:
         axes[1].set_ylabel(feature, fontsize=16)
         axes[1].tick_params(axis='x', labelsize=14)
         axes[1].tick_params(axis='y', labelsize=14)
+        axes[1].set_xlim(0, 0.9)  # Ensure the x-axis is consistent
 
         plt.figtext(0.2, 0.5, '... (omitted middle values) ...', ha='center', fontsize=12, color='black')
         plt.tight_layout()
@@ -210,25 +216,38 @@ def calculate_information_gain_ratio(df, features, label_column='label'):
     label = df[label_column].values
     results = {}
     le = LabelEncoder()
+
+    # Count the number of occurrences for each label to compute ratios
+    label_counts = pd.Series(label).value_counts(normalize=True)
+    print(f"\nLabel Distribution (Proportion):")
+    print(label_counts)
+
     for feature in features:
         if df[feature].dtype == 'object' or 'category' in str(df[feature].dtype):
             feature_values = le.fit_transform(df[feature].astype(str))
         else:
             feature_values = df[feature].values
+
         feature_values = feature_values.reshape(-1, 1)
         info_gain = mutual_info_classif(feature_values, label, discrete_features=True)[0]
+
         if df[feature].dtype == 'object' or 'category' in str(df[feature].dtype):
             int_values = pd.Series(feature_values.flatten()).astype(int)
         else:
             int_values = pd.Series(feature_values.flatten())
+
         value_counts = np.bincount(int_values)
         probs = value_counts / len(int_values)
         entropy = -np.sum(probs * np.log2(probs + 1e-9))
+
         if entropy != 0:
             info_gain_ratio = info_gain / entropy
         else:
             info_gain_ratio = 0
+
         results[feature] = info_gain_ratio
+        print(f"\nFeature: {feature}")
+        print(f"Information Gain Ratio (Overall): {info_gain_ratio:.4f}")
     return results
 
 
