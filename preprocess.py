@@ -42,30 +42,19 @@ def get_top_review_cities(
     return top_cities
 
 
-def merge_df(
-        business_fp: str,
-        review_fp: str,
-        user_fp: str,
-):
-    print("🔄 Loading filtered datasets...")
-    business_df = pd.read_json(business_fp, lines=True)
-    review_df = pd.read_json(review_fp, lines=True)
-    user_df = pd.read_json(user_fp, lines=True)
-
-    print("🔗 Merging reviews with users...")
-    merged_df = review_df.merge(
-        user_df[['user_id', 'review_count', 'average_stars', 'fans']],
-        on='user_id', how='inner'
-    )
-
-    print("🔗 Merging with business metadata...")
-    merged_df = merged_df.merge(
-        business_df[['business_id', 'categories', 'stars', 'name', 'city']],
-        on='business_id', how='inner'
-    )
-
-    print(f"✅ Final merged shape: {merged_df.shape}")
-    return merged_df
+def filter_checkins(date_str, date):
+    if not date_str:
+        return []
+    try:
+        dates = pd.to_datetime(
+            date_str.split(', '), format='%Y-%m-%d %H:%M:%S', errors='coerce'
+        )
+        filtered = [
+            d.strftime('%Y-%m-%d %H:%M:%S') for d in dates if d and d >= date
+        ]
+        return filtered
+    except Exception:
+        return []
 
 
 def preprocess_data(
@@ -76,6 +65,25 @@ def preprocess_data(
     business_fp = os.path.join(dir, 'yelp_academic_dataset_business.json')
     review_fp = os.path.join(dir, 'yelp_academic_dataset_review.json')
     user_fp = os.path.join(dir, 'yelp_academic_dataset_user.json')
+    checkin_fp = os.path.join(dir, 'yelp_academic_dataset_checkin.json')
+    tip_fp = os.path.join(dir, 'yelp_academic_dataset_tip.json')
+
+    # tip_chunks = []
+    # reader = pd.read_json(tip_fp, lines=True, chunksize=100000)
+    # for chunk in tqdm(iterable=reader, desc="[INFO] Filtering tips"):
+    #     chunk['tip_length'] = chunk['text'].str.len()
+    #     chunk['date'] = pd.to_datetime(chunk['date'])
+    #     tip_chunks.append(chunk)
+    # tip_df = pd.concat(tip_chunks, ignore_index=True)
+    # tip_df = tip_df.groupby(['user_id', 'business_id']).agg(
+    #     tip_count=('text', 'count'),
+    #     avg_tip_len=('tip_length', 'mean'),
+    #     last_tip_date=('date', 'max'),
+    #     compliment_count=('compliment_count', 'sum'),
+    # ).reset_index()
+    # print(tip_df.columns)
+    # print(tip_df.head(30))
+    # return
 
     print("📊 [INFO] Step 1 Get top review cities...")
     # top_cities = get_top_review_cities(
@@ -116,30 +124,58 @@ def preprocess_data(
         ]
         review_chunks.append(chunk)
     review_df = pd.concat(objs=review_chunks, ignore_index=True)
-    print(f"✅ [INFO] {len(review_df)} reviews retained.")
 
-    user_ids = set(review_df['user_id'])
+    user_review_counts = review_df['user_id'].value_counts()
+    user_ids = user_review_counts[user_review_counts >= min_review].index
+    review_df = review_df[review_df['user_id'].isin(user_ids)]
+    print(f"✅ [INFO] {len(user_ids)} users have ≥{min_review} relevant reviews.")
+    print(f"✅ [INFO] {len(review_df)} reviews retained.")
 
     print("👤 [INFO] Step 4 Filter users...")
     user_chunks = []
     reader = pd.read_json(user_fp, lines=True, chunksize=100000)
     for chunk in tqdm(iterable=reader, desc="[INFO] Filtering users"):
-        # chunk['review_count'] = pd.to_numeric(
-        #     chunk['review_count'], errors='coerce'
-        # )
-        chunk = chunk[
-            chunk['user_id'].isin(user_ids) &
-            (chunk['review_count'] >= min_review)
-        ]
+        chunk = chunk[chunk['user_id'].isin(user_ids)]
         user_chunks.append(chunk)
     user_df = pd.concat(user_chunks, ignore_index=True)
     print(f"✅ [INFO] {len(user_df)} users retained.")
 
-    print("💾 [INFO] Step 5 Save filtered datasets...")
-    user_ids = set(user_df['user_id'])
-    review_df = review_df[review_df['user_id'].isin(user_ids)]
+    print("📅 Step 5 Filter check-ins...")
+    checkin_chunks = []
+    date = pd.to_datetime(start_date)
+    reader = pd.read_json(checkin_fp, lines=True, chunksize=100000)
+    for chunk in tqdm(iterable=reader, desc="[INFO] Filtering check-ins"):
+        chunk = chunk[chunk['business_id'].isin(business_ids)]
+        chunk = chunk.copy()
+        chunk.loc[:, 'date'] = chunk['date'].apply(
+            lambda x: filter_checkins(x, date)
+        )
+        checkin_chunks.append(chunk)
+    checkin_df = pd.concat(checkin_chunks, ignore_index=True)
+    print(f"✅ [INFO] {len(checkin_df)} check-ins retained.")
 
-    print("💾 [INFO] Step 5 Save filtered datasets...")
+    print("📅 Step 6 Filter tip...")
+    tip_chunks = []
+    reader = pd.read_json(tip_fp, lines=True, chunksize=100000)
+    for chunk in tqdm(iterable=reader, desc="[INFO] Filtering tips"):
+        chunk = chunk[
+            chunk['user_id'].isin(user_ids) &
+            chunk['business_id'].isin(business_ids)
+        ].copy()
+        chunk['tip_len'] = chunk['text'].str.len()
+        chunk['date'] = pd.to_datetime(chunk['date'])
+        tip_chunks.append(chunk)
+    tip_df = pd.concat(tip_chunks, ignore_index=True)
+    tip_df = tip_df.groupby(['user_id', 'business_id']).agg(
+        tip_count=('text', 'count'),
+        avg_tip_len=('tip_len', 'mean'),
+        last_tip_date=('date', 'max'),
+        compliment_count=('compliment_count', 'sum'),
+    ).reset_index()
+    tip_df['last_tip_date'] = tip_df['last_tip_date'].dt.strftime('%Y-%m-%d %H:%M:%S')
+    print(f"✅ [INFO] {len(tip_df)} tip retained.")
+
+    print("💾 [INFO] Step 7 Save filtered datasets...")
     business_df.to_json(
         path_or_buf=f"{dir}/business.json",
         orient="records",
@@ -155,6 +191,16 @@ def preprocess_data(
         orient="records",
         lines=True,
     )
+    checkin_df.to_json(
+        path_or_buf=f"{dir}/checkin.json",
+        orient="records",
+        lines=True,
+    )
+    tip_df.to_json(
+        path_or_buf=f"{dir}/tip.json",
+        orient="records",
+        lines=True,
+    )
     print("🎉 [INFO] Done! All filtered datasets saved.")
 
     print("🔗 [INFO] Merging review + user...")
@@ -167,12 +213,29 @@ def preprocess_data(
         business_df, on="business_id", how="inner", suffixes=('', '_biz')
     )
 
+    print("🔗 [INFO] Merging with check-in...")
+    review_df = review_df.merge(
+        checkin_df, on='business_id', how='left', suffixes=('', '_checkin')
+    )
+
+    print("🔗 [INFO] Merging with tip...")
+    review_df = review_df.merge(
+        tip_df,
+        on=['user_id', 'business_id'],
+        how='left',
+        suffixes=('', '_tip'),
+    )
+
     review_df.to_json(
         path_or_buf=f"{dir}/dataset.json",
         orient="records",
         lines=True,
     )
     print(f"✅ [INFO] Final merged shape: {review_df.shape}")
+
+    print("📋 [INFO] Number of missing values per column:")
+    missing_counts = review_df.isna().sum()
+    print(missing_counts[missing_counts > 0].sort_values(ascending=False))
 
     return
 
