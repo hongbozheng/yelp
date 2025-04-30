@@ -68,23 +68,6 @@ def preprocess_data(
     checkin_fp = os.path.join(dir, 'yelp_academic_dataset_checkin.json')
     tip_fp = os.path.join(dir, 'yelp_academic_dataset_tip.json')
 
-    # tip_chunks = []
-    # reader = pd.read_json(tip_fp, lines=True, chunksize=100000)
-    # for chunk in tqdm(iterable=reader, desc="[INFO] Filtering tips"):
-    #     chunk['tip_length'] = chunk['text'].str.len()
-    #     chunk['date'] = pd.to_datetime(chunk['date'])
-    #     tip_chunks.append(chunk)
-    # tip_df = pd.concat(tip_chunks, ignore_index=True)
-    # tip_df = tip_df.groupby(['user_id', 'business_id']).agg(
-    #     tip_count=('text', 'count'),
-    #     avg_tip_len=('tip_length', 'mean'),
-    #     last_tip_date=('date', 'max'),
-    #     compliment_count=('compliment_count', 'sum'),
-    # ).reset_index()
-    # print(tip_df.columns)
-    # print(tip_df.head(30))
-    # return
-
     print("📊 [INFO] Step 1 Get top review cities...")
     # top_cities = get_top_review_cities(
     #     business_fp=business_fp,
@@ -203,39 +186,34 @@ def preprocess_data(
     )
     print("🎉 [INFO] Done! All filtered datasets saved.")
 
-    print("🔗 [INFO] Merging review + user...")
-    review_df = review_df.merge(
-        user_df, on="user_id", how="inner", suffixes=('', '_user')
-    )
-
-    print("🔗 [INFO] Merging with business...")
-    review_df = review_df.merge(
-        business_df, on="business_id", how="inner", suffixes=('', '_biz')
-    )
-
-    print("🔗 [INFO] Merging with check-in...")
-    review_df = review_df.merge(
-        checkin_df, on='business_id', how='left', suffixes=('', '_checkin')
-    )
-
-    print("🔗 [INFO] Merging with tip...")
-    review_df = review_df.merge(
-        tip_df,
-        on=['user_id', 'business_id'],
-        how='left',
-        suffixes=('', '_tip'),
-    )
-
-    review_df.to_json(
-        path_or_buf=f"{dir}/dataset.json",
-        orient="records",
-        lines=True,
-    )
-    print(f"✅ [INFO] Final merged shape: {review_df.shape}")
-
-    print("📋 [INFO] Number of missing values per column:")
-    missing_counts = review_df.isna().sum()
-    print(missing_counts[missing_counts > 0].sort_values(ascending=False))
+    # print("🔗 [INFO] Merging review with business...")
+    # review_df = review_df.merge(
+    #     business_df, on="business_id", how="inner", suffixes=('', '_biz')
+    # )
+    #
+    # print("🔗 [INFO] Merging with check-in...")
+    # review_df = review_df.merge(
+    #     checkin_df, on='business_id', how='left', suffixes=('', '_checkin')
+    # )
+    #
+    # print("🔗 [INFO] Merging with tip...")
+    # review_df = review_df.merge(
+    #     tip_df,
+    #     on=['user_id', 'business_id'],
+    #     how='left',
+    #     suffixes=('', '_tip'),
+    # )
+    #
+    # review_df.to_json(
+    #     path_or_buf=f"{dir}/dataset.json",
+    #     orient="records",
+    #     lines=True,
+    # )
+    # print(f"✅ [INFO] Final merged shape: {review_df.shape}")
+    #
+    # print("📋 [INFO] Number of missing values per column:")
+    # missing_counts = review_df.isna().sum()
+    # print(missing_counts[missing_counts > 0].sort_values(ascending=False))
 
     return
 
@@ -270,5 +248,5 @@ if __name__ == "__main__":
     start_date = args.start_date
     min_review = args.min_review
 
-    # shape [595787, 43]
+    # shape [206130, 27]
     preprocess_data(dir=dir, start_date=start_date, min_review=min_review)
