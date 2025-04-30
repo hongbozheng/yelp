@@ -15,43 +15,7 @@ from pandas import DataFrame
 import argparse
 import pandas as pd
 from mlxtend.frequent_patterns import apriori
-
-
-def load_merge(review_fp: str, business_fp: str) -> DataFrame:
-    print("📂 [INFO] Loading reviews...")
-    review_df = pd.read_json(path_or_buf=review_fp, lines=True)
-    print("📂 [INFO] Loading businesses...")
-    business_df = pd.read_json(path_or_buf=business_fp, lines=True)
-
-    print("🔗 [INFO] Merging on business_id...")
-    df = review_df.merge(
-        business_df[['business_id', 'categories']],
-        on='business_id',
-        how='inner',
-    )
-    df = df.dropna(subset=['categories'])
-    print("🧹 [INFO] Splitting and cleaning categories...")
-    df['categories'] = df['categories'].str.split(', ')
-
-    return df
-
-
-def one_hot_encode(df: DataFrame, top_k: int = 50) -> DataFrame:
-    print("📊 [INFO] One-hot encoding categories...")
-    all_cats = df['categories'].explode().dropna()
-    top_cats = all_cats.value_counts().head(top_k).index.tolist()
-    print(f"✅ [INFO] Using top {top_k} categories.")
-
-    df['filtered_cats'] = df['categories'].apply(
-        lambda x: list(set(x).intersection(top_cats))
-    )
-
-    ohe_df = pd.DataFrame(data=False, index=df.index, columns=top_cats)
-    for i, cats in df['filtered_cats'].items():
-        for cat in cats:
-            ohe_df.at[i, cat] = True
-
-    return ohe_df
+from utils import load_merge, one_hot_encode
 
 
 def run_apriori_analysis(
@@ -130,8 +94,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     min_useful = args.min
-    min_sup = args.min_sup
     top_k = args.top_k
+    min_sup = args.min_sup
 
     helpful_vs_unhelpful(
         min_useful=min_useful,
