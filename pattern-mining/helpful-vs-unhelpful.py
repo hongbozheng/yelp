@@ -12,10 +12,14 @@ non-useful feedback.
 
 from pandas import DataFrame
 
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import argparse
 import pandas as pd
 from mlxtend.frequent_patterns import apriori
-from utils import load_merge, one_hot_encode
+from utils.utils import load_merge, one_hot_encode
 
 
 def run_apriori_analysis(
@@ -34,7 +38,7 @@ def run_apriori_analysis(
 
 def helpful_vs_unhelpful(min_useful: int, top_k: int = 50, min_sup: float = 0.01):
     df = load_merge(
-        review_fp="../data/review.json", business_fp="../data/business.json"
+        review_fp="data/review.json", business_fp="data/business.json"
     )
 
     print("🔍 [INFO] Filtering helpful reviews...")
@@ -72,7 +76,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--min",
-        "-m",
+        "-u",
         type=int,
         required=True,
         help="Minimum number of useful needed to retain a pattern",

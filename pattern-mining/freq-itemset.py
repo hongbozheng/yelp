@@ -1,10 +1,12 @@
-
-
 from pandas import DataFrame
+
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import argparse
 from mlxtend.frequent_patterns import apriori, association_rules
-from utils import load_merge, one_hot_encode, draw_sankey_from_rules, \
+from utils.utils import load_merge, one_hot_encode, draw_sankey_from_rules, \
     draw_lift_support_heatmap, draw_category_network
 
 
@@ -22,7 +24,7 @@ def freq_itemset(
         k: int = 10,
 ):
     df = load_merge(
-        review_fp="../data/review.json", business_fp="../data/business.json"
+        review_fp="data/review.json", business_fp="data/business.json"
     )
 
     ohe_df = one_hot_encode(df=df, top_k=top_k)

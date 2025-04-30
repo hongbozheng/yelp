@@ -11,11 +11,15 @@ This also shows that you understand subgroup analysis, an advanced application o
 
 from pandas import DataFrame
 
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import argparse
 import pandas as pd
 from mlxtend.frequent_patterns import apriori
 from tqdm import tqdm
-from utils import load_merge, one_hot_encode
+from utils.utils import load_merge, one_hot_encode
 
 
 def apriori_per_city(df: DataFrame, top_k: int, min_sup: float) -> DataFrame:
@@ -41,7 +45,7 @@ def apriori_per_city(df: DataFrame, top_k: int, min_sup: float) -> DataFrame:
 
 def city_specific_itemset(top_k: int = 50, min_sup: float = 0.02, k: int = 5):
     df = load_merge(
-        review_fp="../data/review.json", business_fp="../data/business.json"
+        review_fp="data/review.json", business_fp="data/business.json"
     )
     all_city_freqs = apriori_per_city(df=df, top_k=top_k, min_sup=min_sup)
 

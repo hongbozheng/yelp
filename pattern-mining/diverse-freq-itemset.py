@@ -12,12 +12,16 @@ This shows awareness of pattern explosion and how to deal with it using diversit
 
 from pandas import DataFrame
 
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import argparse
 import pandas as pd
 from mlxtend.frequent_patterns import apriori
 from sklearn.metrics import pairwise_distances
 from sklearn.cluster import AgglomerativeClustering
-from utils import load_merge, one_hot_encode
+from utils.utils import load_merge, one_hot_encode
 
 
 def apriori_all(df: DataFrame, min_sup: float):

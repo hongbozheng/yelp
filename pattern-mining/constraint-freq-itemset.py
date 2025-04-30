@@ -12,10 +12,14 @@ This also shows that you understand subgroup analysis, an advanced application o
 from pandas import DataFrame
 from typing import List
 
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import argparse
 import pandas as pd
 from mlxtend.frequent_patterns import apriori
-from utils import load_merge
+from utils.utils import load_merge
 
 
 def one_hot_encode(df: DataFrame, top_k: int, cats: List[str]):
@@ -56,7 +60,7 @@ def constraint_freq_itemset(
         k: int = 10,
 ):
     df = load_merge(
-        review_fp="../data/review.json", business_fp="../data/business.json"
+        review_fp="data/review.json", business_fp="data/business.json"
     )
     ohe_df = one_hot_encode(df=df, top_k=top_k, cats=cats)
     freq_itemsets = constrained_apriori(df=ohe_df, min_sup=min_sup)

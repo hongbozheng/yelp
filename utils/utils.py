@@ -104,3 +104,88 @@ def draw_lift_support_heatmap(rules, top_n=20):
     plt.ylabel("Antecedents")
     plt.tight_layout()
     plt.show()
+
+
+def build_user_feature_matrix(
+        df: DataFrame,
+        checkin_fp: str,
+        tip_fp: str,
+        top_k: int,
+):
+    print("🧹 [INFO] Preprocessing category features...")
+    all_cats = df['categories'].explode().dropna()
+    top_cats = all_cats.value_counts().head(top_k).index.tolist()
+    print(f"✅ [INFO] Using top {top_k} categories.")
+
+    for cat in top_cats:
+        df[cat] = df['categories'].apply(lambda x: int(x in top_cats))
+
+    print("📐 [INFO] Calculating auxiliary features...")
+    df['review_len'] = df['text'].apply(lambda x: len(x.split()))
+    df['review_date'] = pd.to_datetime(df['date'], unit='ms')  # Epoch time format
+    df['year'] = df['review_date'].dt.year
+
+    print("📊 [INFO] Aggregating user-level features...")
+    user_df = df.groupby('user_id').agg({
+        'review_id': 'count',
+        'stars': ['mean', 'std'],
+        'review_len': 'mean',
+        'useful': 'mean',
+        'funny': 'mean',
+        'cool': 'mean',
+        'year': lambda x: x.max() - x.min() + 1,
+        'review_date': lambda x: x.dt.year.value_counts().std(),
+        # std of review count per year
+        'business_id': pd.Series.nunique,
+        'categories': lambda x: len(
+            set([cat for sublist in x for cat in sublist])),
+        **{cat: 'mean' for cat in top_cats}
+    })
+
+    # Flatten multi-index columns
+    user_df.columns = [
+        '_'.join(col).strip() if isinstance(col, tuple) else col
+        for col in user_df.columns
+    ]
+    user_df = user_df.rename(columns={
+        'review_id_count': 'review_count',
+        'stars_mean': 'avg_stars',
+        'stars_std': 'star_variance',
+        'review_len_mean': 'avg_review_len',
+        'useful_mean': 'avg_useful',
+        'funny_mean': 'avg_funny',
+        'cool_mean': 'avg_cool',
+        'year_<lambda>': 'active_years',
+        'review_date_<lambda>': 'review_consistency',
+        'business_id_nunique': 'unique_businesses',
+        'categories_<lambda>': 'unique_categories',
+        **{f"{cat}_mean": f"%_{cat}" for cat in top_cats}
+    })
+
+    # Fill missing stds with 0 (for users with 1 review)
+    user_df['star_variance'] = user_df['star_variance'].fillna(0)
+    user_df['review_consistency'] = user_df['review_consistency'].fillna(0)
+
+    # ⛽ Add check-in count
+    if checkin_fp is not None:
+        print("📂 [INFO] Loading check-in...")
+        checkin_df = pd.read_json(path_or_buf=checkin_fp, lines=True)
+        checkin_df['checkin_count'] = checkin_df['date'].str.count(",") + 1
+        checkin_sum = checkin_df.groupby('business_id')['checkin_count'].sum()
+        df['checkin_count'] = df['business_id'].map(checkin_sum).fillna(0)
+        user_checkins = df.groupby('user_id')['checkin_count'].sum()
+        user_df['total_checkins'] = user_checkins
+        user_df['total_checkins'] = user_df['total_checkins'].fillna(0)
+
+    # 💬 Add tip count
+    if tip_fp is not None:
+        print("📂 [INFO] Loading tip...")
+        tip_df = pd.read_json(path_or_buf=tip_fp, lines=True)
+        tip_counts = tip_df.groupby('user_id').size()
+        user_df['total_tips'] = tip_counts
+        user_df['total_tips'] = user_df['total_tips'].fillna(0)
+
+    print(f"✅ [INFO] Final user feature shape: {user_df.shape}")
+    print(user_df.head(5))
+
+    return user_df.reset_index()
