@@ -42,7 +42,7 @@ def get_top_review_cities(
     return top_cities
 
 
-def filter_checkins(date_str, date):
+def filter_checkin(date_str, date):
     if not date_str:
         return []
     try:
@@ -57,7 +57,7 @@ def filter_checkins(date_str, date):
         return []
 
 
-def preprocess_data(
+def preprocess(
         dir: str,
         start_date: str,
         min_review: int,
@@ -131,7 +131,7 @@ def preprocess_data(
         chunk = chunk[chunk['business_id'].isin(business_ids)]
         chunk = chunk.copy()
         chunk.loc[:, 'date'] = chunk['date'].apply(
-            lambda x: filter_checkins(x, date)
+            lambda x: filter_checkin(x, date)
         )
         checkin_chunks.append(chunk)
     checkin_df = pd.concat(checkin_chunks, ignore_index=True)
@@ -249,4 +249,4 @@ if __name__ == "__main__":
     min_review = args.min_review
 
     # shape [206130, 27]
-    preprocess_data(dir=dir, start_date=start_date, min_review=min_review)
+    preprocess(dir=dir, start_date=start_date, min_review=min_review)
