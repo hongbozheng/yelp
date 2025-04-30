@@ -1,5 +1,5 @@
 .DS_Store
 .idea/
 __pycache__/
-yelp/
+data/
 yelp_illinois/
