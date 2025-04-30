@@ -44,6 +44,8 @@ def helpful_vs_unhelpful(min_useful: int, top_k: int = 50, min_sup: float = 0.01
     print("🔍 [INFO] Filtering helpful reviews...")
     helpful_df = df[df['useful'] >= min_useful].copy()
     unhelpful_df = df[df['useful'] == 0].copy()
+    # print(helpful_df.shape)
+    # print(unhelpful_df.shape)
 
     helpful_patterns = run_apriori_analysis(
         df=helpful_df, top_k=top_k, min_sup=min_sup, label='helpful'

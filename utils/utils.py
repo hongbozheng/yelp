@@ -87,6 +87,7 @@ def draw_category_network(itemsets_df, min_len=2, min_sup=0.01):
 
 
 def draw_lift_support_heatmap(rules, top_n=20):
+    # TODO: Try not to use Lift since it's null-variant !!! Use Kulczynski Measure
     print("📊 [INFO] Drawing heatmap of Lift vs. Support...")
 
     rules = rules.sort_values(by='lift', ascending=False).head(top_n)
@@ -118,7 +119,7 @@ def build_user_feature_matrix(
     print(f"✅ [INFO] Using top {top_k} categories.")
 
     for cat in top_cats:
-        df[cat] = df['categories'].apply(lambda x: int(x in top_cats))
+        df[cat] = df['categories'].apply(lambda x: int(cat in x))
 
     print("📐 [INFO] Calculating auxiliary features...")
     df['review_len'] = df['text'].apply(lambda x: len(x.split()))
