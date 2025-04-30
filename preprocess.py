@@ -1,5 +1,4 @@
 from typing import List
-from pandas import DataFrame
 
 import argparse
 import os
