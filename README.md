@@ -1,121 +1,202 @@
-# 🔍 Yelp Data Analysis
+# 📊 CS412 Final Project – Mining User Behavior & Review Helpfulness on Yelp
 
-This project aims to analyze the Yelp dataset by focusing on businesses located in **Illinois**. The analysis involves extracting features, performing statistical analysis, applying association rule mining, and conducting N-gram analysis on reviews.
+## 🧠 Overview
+
+This project explores real-world data mining techniques on the **Yelp Academic Dataset**, applying concepts learned in **CS412: Introduction to Data Mining**. The pipeline performs:
+
+- 🔄 Data Preprocessing & Feature Engineering  
+- 📊 Frequent Pattern Mining  
+- 📈 User Clustering  
+- 🎯 Review Helpfulness Classification  
+
+The analysis targets discovering **reviewer behavior patterns**, segmenting users by activity, and **predicting helpful reviews** — all grounded in scalable data mining practices.
 
 ---
 
-## 📂 Required Dataset
+## 📦 Dataset
 
-You must download the complete Yelp dataset from Kaggle:
+We use a filtered subset of the [Yelp Open Dataset](https://www.yelp.com/dataset):
 
-- **[Yelp Dataset on Kaggle](https://www.kaggle.com/datasets/yelp-dataset/yelp-dataset)**
+- `review.json`: Review content, star ratings, feedback
+- `business.json`: Business metadata including categories
+- `user.json`: User-level metadata (review count, avg stars, etc.)
+- `checkin.json`, `tip.json`: Optional behavioral metadata
 
-After downloading, extract the dataset to your local directory.
+We filter to:
+- ✅ Top 10 cities by total review count
+- ✅ Top categories (e.g., Restaurants, Bars, Cafes)
+- ✅ Active users (≥ 20 reviews)
+- ✅ Reviews after 2019-01-01
 
 ---
 
-## 📁 File Structure
+## 🔄 Phase 1: Data Preprocessing & Feature Engineering
 
-The required file structure is as follows:
+### ✅ Key Steps
+
+- Filter and join `review`, `business`, and `user` datasets
+- Extract review metadata: length, usefulness, date
+- Create binary category flags (e.g., `%Bars`, `%Sushi Bars`)
+- Add user statistics: `avg_stars`, `fans`, `review_count`
+- Add behavioral metadata: `tip_count`, `checkins`, `review_variance`
+
+### 💾 Output
+
+- A `merged_df` containing structured features per review
+- A `user_df` containing aggregated behavior features per user
+
+---
+
+## 📊 Phase 2: Frequent Pattern Mining
+
+We mine **frequent co-occurring business categories** and interpret user tastes.
+
+### ✅ Experiments
+
+1. **Compare helpful vs. non-helpful reviews**  
+   → What category patterns lead to helpful feedback?
+
+2. **City-specific pattern discovery**  
+   → What makes Las Vegas reviews different from Tampa?
+
+3. **Constraint-based mining**  
+   → Only mine patterns containing keywords like `'Bars'`, `'Sushi Bars'`
+
+4. **Top-k diverse itemsets**  
+   → Reduce redundancy using Jaccard distance + clustering
+
+5. **Visual Summaries**  
+   → Sankey plot, Co-occurrence graph, Lift heatmap
+
+---
+
+## 📈 Phase 3: User Clustering
+
+We cluster users by their **review behavior**.
+
+### ✅ Features Engineered
+
+- `avg_stars`, `review_count`, `star_variance`
+- `% category engagement` (`%Bars`, `%Cafes`, etc.)
+- `review_consistency`, `tip_count`, `checkin_count`
+- `unique_businesses`, `active_years`
+
+### ✅ Methods
+
+1. **K-Means**  
+2. **Hierarchical Clustering (Agglomerative + Dendrogram)**  
+3. **DBSCAN (density-based)**
+
+### 📊 Evaluation
+
+- Silhouette scores
+- Cluster centroids
+- PCA/t-SNE visualization
+- Outlier detection (DBSCAN `-1` labels)
+
+---
+
+## 🎯 Phase 4: Review Helpfulness Classification
+
+We predict whether a review is **helpful** (i.e., `useful ≥ 3`) using multiple techniques.
+
+### ✅ Methods
+
+1. **Logistic Regression, Random Forest**  
+   (Structured features only)
+
+2. **TF-IDF + Metadata Hybrid**  
+   (Add review text as sparse features)
+
+3. **Rule-Based Classifier from Association Rules**  
+   ("If review includes `Bars` + `Long text` → likely helpful")
+
+4. **Evaluation**  
+   - Accuracy, F1, Precision/Recall
+   - Confusion Matrix, ROC-AUC
+   - Rule Coverage vs. ML Performance
+
+---
+
+## 📁 Project Structure
 
 ```
-project/
+yelp/
 │
-├── yelp/                               # Complete Yelp dataset (downloaded from Kaggle)
-│   ├── yelp_academic_dataset_business.json
-│   ├── yelp_academic_dataset_checkin.json
-│   ├── yelp_academic_dataset_review.json
-│   ├── yelp_academic_dataset_user.json
-│   ├── yelp_academic_dataset_tip.json
+├── classification/                          # 🎯 Predicting review helpfulness (label: useful >= 3)
+│   ├── classification.py                    # ML classifiers: Logistic Regression, Random Forest, XGBoost using review + user + business features
+│   └── rule-classification.py               # Rule-based classifier using association rules mined from helpful reviews
 │
-├── yelp_illinois/                      # Subset of Yelp data filtered for Illinois (Generated by SaveIllinois.py)
-│   ├── business_illinois.json
-│   ├── review_illinois.json
-│   ├── user_illinois.json
-│   ├── checkin_illinois.json
-│   ├── tip_illinois.json
+├── clustering/                              # 📈 Clustering users based on behavioral features
+│   ├── clustering.py                        # K-Means clustering with feature engineering and PCA visualization
+│   ├── dbscan.py                            # Density-based clustering using DBSCAN; includes outlier detection
+│   └── hierach-clustering.py                # Agglomerative (hierarchical) clustering with dendrogram generation and interpretation
 │
-├── SaveIllinois.py                     # Script to create Illinois-specific subset
-├── main_analysis.py                    # Script to run main analysis (excluding N-gram analysis)
-├── ngram_analysis.py                   # Script to run N-gram analysis
-├── README.md                           # This file
+├── data/                                    # 📂 Filtered and preprocessed Yelp dataset (top 10 cities, categories, etc.)
+│   ├── business.json                        # Cleaned business metadata with city and category information
+│   ├── checkin.json                         # Check-in data per business; used for behavioral features
+│   ├── review.json                          # Filtered reviews from selected users and cities (post-2019)
+│   ├── tip.json                             # User tips metadata; used for additional engagement signals
+│   └── user.json                            # Filtered users with >= 20 reviews, and their profile statistics
+│
+├── pattern-mining/                          # 📊 Association rule mining on category co-occurrence and user behavior
+│   ├── constraint-freq-itemset.py           # Constraint-based frequent pattern mining (e.g., must contain "Bars", "Sushi Bars")
+│   ├── diverse-freq-itemset.py              # Redundancy-aware top-k itemset mining using clustering + Jaccard distance
+│   ├── freq-itemset.py                      # Core Apriori mining with one-hot encoding of business categories
+│   ├── helpful-vs-unhelpful.py              # Compare frequent itemsets in helpful vs. unhelpful reviews (behavioral contrast mining)
+│   └── region-freq-itemset.py               # Frequent pattern mining grouped by city; reveals regional preferences
+│
+├── utils/                                   # 🧰 Common tools, loaders, and helper functions
+│   └── utils.py                             # Reusable functions: data loading, merging, review length, category encoding, visualization
+│
+├── .gitignore                               # 🔒 Prevent committing data, cache files, Python bytecode, etc.
+│
+└── README.md                                # 📘 Project documentation: goals, phases, usage, and CS412 concepts explained
 ```
 
 ---
 
-## ⚙️ Installation Requirements
+## 🧪 Technologies
 
-Ensure you have the following Python packages installed:
-
-```bash
-pip install pandas numpy scikit-learn mlxtend
-```
-
----
-
-## 📌 Steps to Run the Analysis
-
-### 1. Prepare the Dataset
-
-- Download the entire Yelp dataset from [Kaggle](https://www.kaggle.com/datasets/yelp-dataset/yelp-dataset).
-- Extract all files to the `yelp/` directory within your `project/` folder.
+- Python 3.10
+- `pandas`, `numpy`, `scikit-learn`, `mlxtend`
+- `matplotlib`, `seaborn`, `plotly`, `networkx`
+- (Optional): `transformers`, `xgboost` for advanced extensions
 
 ---
 
-### 2. Generate Illinois-Specific Subset
+## 🎓 CS412 Concepts Used
 
-Run the `SaveIllinois.py` script to filter out businesses located in Illinois:
-
-```bash
-python SaveIllinois.py
-```
-
-This will generate a folder `yelp_illinois/` containing the following files:
-
-```
-├── business_illinois.json
-├── review_illinois.json
-├── user_illinois.json
-├── checkin_illinois.json
-├── tip_illinois.json
-```
+| Concept                      | Where Used |
+|-----------------------------|------------|
+| Data Cleaning & Preprocessing | Phase 1 |
+| Association Rule Mining     | Phase 2 |
+| Constraint-Based Mining     | Phase 2 |
+| Frequent Pattern Summarization | Phase 2 |
+| Clustering (K-Means, DBSCAN, Hierarchical) | Phase 3 |
+| Classification & Model Evaluation | Phase 4 |
+| Pattern-Based Classification | Phase 4 |
+| Visual Analytics             | Phase 2–4 |
 
 ---
 
-### 3. Run the Main Analysis
+## 💡 Extensions (Optional)
 
-To perform feature analysis, probability calculations, and association rule mining, run:
-
-```bash
-python main_analysis.py
-```
+- Use BERT embeddings for review text
+- Add temporal trend analysis (per-user or per-city)
+- Create a web dashboard (e.g., with Streamlit)
 
 ---
 
-### 4. Run the N-gram Analysis
+## 📣 Acknowledgments
 
-To conduct N-gram analysis on review texts, run:
-
-```bash
-python ngram_analysis.py
-```
+- Yelp Open Dataset
+- CS412 Faculty for incredible guidance
+- Open-source contributors to `mlxtend`, `scikit-learn`, `plotly`
 
 ---
 
-## 📈 Output
+## 📬 Contact
 
-The scripts will generate outputs on the terminal, including:
-
-- **Top feature values associated with high or low ratings.**
-- **Important association rules extracted using the Apriori algorithm.**
-- **Relevant N-gram phrases associated with high or low ratings.**
-
----
-
-## 🎯 Next Steps
-
-You can improve the analysis by:
-
-- Adjusting the `MIN_SUPPORT_COUNT` for better filtering.
-- Adding more features for association analysis.
-- Optimizing the scripts for large datasets.
+> *This project was developed by [Your Name], a student of UIUC CS412.*  
+> For questions or collaboration ideas, please reach out at: **your.email@domain.com**
