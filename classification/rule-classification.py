@@ -1,47 +1,36 @@
 from pandas import DataFrame
-
-import os
-import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from typing import List
 
 import argparse
-from config import FEATURES
 from mlxtend.frequent_patterns import apriori, association_rules
 from sklearn.metrics import classification_report, confusion_matrix
-from utils.utils import load_merge
+from utils import review_feature
 
 
 def mine_patterns(
         df: DataFrame,
-        min_useful: int,
-        top_k: int,
-        min_sup: float,
-        min_conf: float,
-        min_len: int,
-        kulc: float,
+        top_cats: List[str],
+        min_sup: float = 0.02,
+        min_conf: float = 0.40,
+        min_len: int = 2,
+        kulc: float = 0.60,
 ):
     print("📊 [INFO] Mining helpful rules...")
-
-    df['label'] = (df['useful'] >= min_useful).astype(int)
-    print("📐 [INFO] Selecting features...")
-    df = df[FEATURES].fillna(0)
-
-    label_counts = df['label'].value_counts(normalize=True) * 100
+    total = df['label'].shape[0]
+    pos = (df['label'] == 1).sum()
+    neg = (df['label'] == 0).sum()
     print(f"📊 [INFO] Label Distribution:")
-    print(f"[INFO] ➤ Helpful (label=1):     {label_counts.get(1, 0):.4f}%")
-    print(f"[INFO] ➤ Not helpful (label=0): {label_counts.get(0, 0):.4f}%")
+    print(f"[INFO] ➤ Helpful     [1]: {pos} {pos/total:.4%}")
+    print(f"[INFO] ➤ Not helpful [0]: {neg} {neg/total:.4%}")
 
-    print("📊 [INFO] One-hot encoding categories...")
-    all_cats = df['categories'].explode().dropna()
-    top_cats = all_cats.value_counts().head(top_k).index.tolist()
-    print(f"✅ [INFO] Using top {top_k} categories.")
+    df = df.select_dtypes(include='number')
+    df = df[df['label'] == 1][top_cats].astype(bool)
+    df = df.drop(columns=['label', 'userful', ], errors='ignore')
 
-    for cat in top_cats:
-        df[cat] = df['categories'].apply(lambda x: int(cat in x))
+    print(f"🧠 [INFO] Running Apriori...")
+    freq_itemsets = apriori(df=df, min_support=min_sup, use_colnames=True)
+    print(f"✅ [INFO] Found {len(freq_itemsets)} frequent itemsets.")
 
-    # Only use helpful reviews for rule mining
-    ohe_df = df[df['label'] == 1][top_cats].astype(bool)
-    freq_itemsets = apriori(df=ohe_df, min_support=min_sup, use_colnames=True)
     rules = association_rules(
         df=freq_itemsets, metric='confidence', min_threshold=min_conf
     )
@@ -88,18 +77,18 @@ def rules_classifier(df, rules, top_cats, min_useful):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--min",
-        "-u",
-        type=int,
-        required=True,
-        help="Minimum number of useful needed to retain a pattern",
-    )
-    parser.add_argument(
         "--top_k",
         "-t",
         type=int,
         required=True,
         help="Top-k for one-hot encoding",
+    )
+    parser.add_argument(
+        "--min",
+        "-u",
+        type=int,
+        required=True,
+        help="Minimum number of useful",
     )
     parser.add_argument(
         "--min_sup",
@@ -130,21 +119,26 @@ if __name__ == "__main__":
         help="Kulczynski Measure",
     )
     args = parser.parse_args()
-    min_useful = args.min
     top_k = args.top_k
+    min_useful = args.min
     min_sup = args.min_sup
     min_conf = args.min_conf
     min_len = args.min_len
     kulc = args.kulc
 
-    df = load_merge(
-        review_fp="data/review.json", business_fp="data/business.json"
+    df, top_cats = review_feature(
+        review_fp="data/review.json",
+        business_fp="data/business.json",
+        user_fp="data/user.json",
+        checkin_fp="data/checkin.json",
+        tip_fp="data/tip.json",
+        min_useful=min_useful,
+        top_k=top_k,
     )
 
     rules, top_cats = mine_patterns(
         df=df,
-        min_useful=min_useful,
-        top_k=top_k,
+        top_cats=top_cats,
         min_sup=min_sup,
         min_conf=min_conf,
         min_len=min_len,
