@@ -1,11 +1,34 @@
 from pandas import DataFrame
-from typing import List
+from typing import List, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
 import pandas as pd
 import plotly.graph_objects as go
 import seaborn as sns
+
+
+FEATURES = [
+    'stars', 'cool', 'review', 'Restaurants',
+    'Food', 'Nightlife', 'Bars', 'American (New)', 'Breakfast & Brunch',
+    'American (Traditional)', 'Sandwiches', 'Coffee & Tea', 'Mexican',
+    'Event Planning & Services', 'Seafood', 'Cocktail Bars', 'Shopping',
+    'Burgers', 'Pizza', 'Desserts', 'Arts & Entertainment', 'Italian',
+    'Salad', 'Cafes', 'Bakeries', 'Specialty Food', 'Beer',
+    'Wine & Spirits', 'Japanese', 'Wine Bars', 'Chinese', 'Fast Food',
+    'Asian Fusion', 'Sushi Bars', 'Beauty & Spas', 'Venues & Event Spaces',
+    'Pubs', 'Caterers', 'Steakhouses', 'Active Life', 'Southern',
+    'Chicken Wings', 'Ice Cream & Frozen Yogurt', 'Vegetarian', 'Beer Bar',
+    'Sports Bars', 'Juice Bars & Smoothies', 'Grocery', 'Barbeque',
+    'Cajun/Creole', 'Tacos', 'Vegan', 'Mediterranean',
+    'review_count', 'useful_user', 'funny_user',
+    'cool_user', 'friend', 'fans', 'average_stars', 'rev-age',
+    # 'compliment_hot', 'compliment_more', 'compliment_note',
+    # 'compliment_plain', 'compliment_cool', 'compliment_funny',
+    # 'compliment_writer', 'compliment_photos',
+    # 'days_since_1st_rev', 'days_since_dataset_start',
+    'rev_freq_month', 'rev_freq_std',
+]
 
 
 def parse_elite(elite):
@@ -92,6 +115,12 @@ def review_feature(
 
     print("🎯 [INFO] Creating target variable...")
     df['label'] = (df['useful'] >= min_useful).astype(int)
+    total = df['label'].shape[0]
+    pos = (df['label'] == 1).sum()
+    neg = (df['label'] == 0).sum()
+    print(f"📊 [INFO] Label Distribution:")
+    print(f"[INFO] ➤ Helpful     [1]: {pos} {pos / total:.4%}")
+    print(f"[INFO] ➤ Not helpful [0]: {neg} {neg / total:.4%}")
 
     print(f"✅ [INFO] Final review feature shape {df.shape}")
 
@@ -122,6 +151,79 @@ def rule_feature(
 
     print(f"✅ [INFO] Binarized {len(cols)} columns.")
     print(f"✅ [INFO] Final rule feature shape {df.shape}")
+
+    return df
+
+
+def user_feature(
+        review_fp: str,
+        business_fp: str,
+        user_fp: str,
+        checkin_fp: str,
+        tip_fp: str,
+        top_k: int,
+        min_useful: int,
+        useful_thres: float,
+):
+    df, top_cats = review_feature(
+        review_fp=review_fp,
+        business_fp=business_fp,
+        user_fp=user_fp,
+        checkin_fp=checkin_fp,
+        tip_fp=tip_fp,
+        top_k=top_k,
+        min_useful=min_useful,
+    )
+
+    top_cats.extend([
+        'review_id', 'business_id', 'text', 'date', 'city', 'categories',
+        'name', 'yelping_since', 'friends', 'year_month', 'label',
+    ])
+    df = df.drop(columns=top_cats, errors='ignore')
+
+    print("📊 [INFO] Aggregating user-level features via mean...")
+    df = df.groupby('user_id').mean().reset_index()
+    print(f"✅ [INFO] Aggregated features for {len(df)} users.")
+
+    print(f"🎯 [INFO] Creating binary label using threshold: useful ≥ {useful_thres}")
+    df['label'] = (df['useful'] >= useful_thres).astype(int)
+    print(df.head(10))
+    total = df['label'].shape[0]
+    pos = (df['label'] == 1).sum()
+    neg = (df['label'] == 0).sum()
+    print(f"📊 [INFO] Label Distribution:")
+    print(f"[INFO] ➤ Helpful     [1]: {pos} {pos / total:.4%}")
+    print(f"[INFO] ➤ Not helpful [0]: {neg} {neg / total:.4%}")
+
+    return df
+
+
+def binarize(
+        df: DataFrame,
+        method: Union[float, str],
+):
+    if type(method) == float:
+        print(f"🔁 [INFO] Performing top {int((1 - method) * 100)}% binarization...")
+    else:
+        print(f"🔁 [INFO] Performing median binarization...")
+    cols = df.select_dtypes(include='number')
+    print("📊 [INFO] Distribution of 0s and 1s in binarized columns:")
+    for col in cols:
+        if type(method) == float:
+            thres = df[col].quantile(method)
+        else:
+            thres = df[col].median()
+
+        df[col] = (df[col] >= thres).astype(int)
+        total = len(df)
+        ones = (df[col] == 1).sum()
+        zeros = (df[col] == 0).sum()
+        one_pct = ones / total
+        zero_pct = zeros / total
+        print(f"{col:<25}: 0s = {zeros:<6} [{zero_pct:8.4%}] | 1s = {ones:<6} [{one_pct:8.4%}]")
+
+    print(f"✅ [INFO] Binarized {len(cols)} columns.")
+    print(f"✅ [INFO] Final binarized user feature shape {df.shape}")
 
     return df
 
