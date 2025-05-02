@@ -1,0 +1,21 @@
+support,itemsets,itemset_len
+0.06835784599496977,"frozenset({'Cocktail Bars', 'Bars', 'Restaurants', 'Nightlife'})",4
+0.06477672102203641,"frozenset({'Bars', 'Food', 'Restaurants', 'Nightlife'})",4
+0.07847660609290938,"frozenset({'American (New)', 'Bars', 'Restaurants', 'Nightlife'})",4
+0.07210553492013258,"frozenset({'Bars', 'Restaurants', 'Nightlife', 'American (Traditional)'})",4
+0.08073354764561853,"frozenset({'American (New)', 'Restaurants', 'Nightlife'})",3
+0.06835784599496977,"frozenset({'Cocktail Bars', 'Restaurants', 'Nightlife'})",3
+0.06835784599496977,"frozenset({'Cocktail Bars', 'Restaurants', 'Bars'})",3
+0.07472891716774656,"frozenset({'Cocktail Bars', 'Bars', 'Nightlife'})",3
+0.06061262221629995,"frozenset({'Breakfast & Brunch', 'Food', 'Restaurants'})",3
+0.07847660609290938,"frozenset({'American (New)', 'Restaurants', 'Bars'})",3
+0.07847660609290938,"frozenset({'American (New)', 'Bars', 'Nightlife'})",3
+0.06872428668987458,"frozenset({'Food', 'Restaurants', 'Nightlife'})",3
+0.22804270699735163,"frozenset({'Bars', 'Restaurants', 'Nightlife'})",3
+0.06451021869846928,"frozenset({'Coffee & Tea', 'Food', 'Restaurants'})",3
+0.07210553492013258,"frozenset({'Bars', 'Nightlife', 'American (Traditional)'})",3
+0.07210553492013258,"frozenset({'American (Traditional)', 'Restaurants', 'Bars'})",3
+0.07369622066392391,"frozenset({'American (Traditional)', 'Restaurants', 'Nightlife'})",3
+0.06477672102203641,"frozenset({'Food', 'Restaurants', 'Bars'})",3
+0.0745290404250712,"frozenset({'Bars', 'Food', 'Nightlife'})",3
+0.053858453953395405,"frozenset({'Food', 'Restaurants', 'American (New)'})",3
