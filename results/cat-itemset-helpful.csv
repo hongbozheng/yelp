@@ -1,20 +1,20 @@
 support,itemsets,itemset_len
-0.06426187269426714,{'Cocktail Bars', 'Bars', 'Restaurants', 'Nightlife'},4
-0.058968202845933126,{'Bars', 'Food', 'Restaurants', 'Nightlife'},4
-0.06663933946243486,{'American (New)', 'Bars', 'Restaurants', 'Nightlife'},4
-0.05816009837793523,{'Bars', 'Restaurants', 'Nightlife', 'American (Traditional)'},4
-0.06211863910522926,{'Food', 'Restaurants', 'Nightlife'},3
-0.05816009837793523,{'Bars', 'Nightlife', 'American (Traditional)'},3
-0.06426187269426714,{'Cocktail Bars', 'Restaurants', 'Nightlife'},3
-0.06426187269426714,{'Cocktail Bars', 'Restaurants', 'Bars'},3
-0.07127715640920536,{'Cocktail Bars', 'Bars', 'Nightlife'},3
-0.05949522749897523,{'Coffee & Tea', 'Food', 'Restaurants'},3
-0.05942495754523628,{'American (Traditional)', 'Restaurants', 'Nightlife'},3
-0.05816009837793523,{'American (Traditional)', 'Restaurants', 'Bars'},3
-0.20220179188382034,{'Bars', 'Restaurants', 'Nightlife'},3
-0.06663933946243486,{'American (New)', 'Bars', 'Nightlife'},3
-0.06663933946243486,{'American (New)', 'Restaurants', 'Bars'},3
-0.06845464660069099,{'American (New)', 'Restaurants', 'Nightlife'},3
-0.058968202845933126,{'Food', 'Restaurants', 'Bars'},3
-0.06984833401651344,{'Bars', 'Food', 'Nightlife'},3
-0.055150202026117,{'Breakfast & Brunch', 'Food', 'Restaurants'},3
+0.06426187269426714,{'Restaurants', 'Nightlife', 'Cocktail Bars', 'Bars'},4
+0.058968202845933126,{'Restaurants', 'Nightlife', 'Food', 'Bars'},4
+0.06663933946243486,{'Restaurants', 'Nightlife', 'American (New)', 'Bars'},4
+0.05816009837793523,{'Restaurants', 'Nightlife', 'American (Traditional)', 'Bars'},4
+0.06211863910522926,{'Restaurants', 'Nightlife', 'Food'},3
+0.05816009837793523,{'Nightlife', 'American (Traditional)', 'Bars'},3
+0.06426187269426714,{'Restaurants', 'Nightlife', 'Cocktail Bars'},3
+0.06426187269426714,{'Restaurants', 'Cocktail Bars', 'Bars'},3
+0.07127715640920536,{'Nightlife', 'Cocktail Bars', 'Bars'},3
+0.05949522749897523,{'Food', 'Coffee & Tea', 'Restaurants'},3
+0.05942495754523628,{'Restaurants', 'Nightlife', 'American (Traditional)'},3
+0.05816009837793523,{'Restaurants', 'American (Traditional)', 'Bars'},3
+0.20220179188382034,{'Restaurants', 'Nightlife', 'Bars'},3
+0.06663933946243486,{'Nightlife', 'American (New)', 'Bars'},3
+0.06663933946243486,{'Restaurants', 'American (New)', 'Bars'},3
+0.06845464660069099,{'Restaurants', 'Nightlife', 'American (New)'},3
+0.058968202845933126,{'Restaurants', 'Food', 'Bars'},3
+0.06984833401651344,{'Food', 'Nightlife', 'Bars'},3
+0.055150202026117,{'Restaurants', 'Food', 'Breakfast & Brunch'},3

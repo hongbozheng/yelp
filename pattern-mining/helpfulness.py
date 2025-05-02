@@ -8,6 +8,13 @@ Understand which business category combinations are more common in:
 
 This gives insight into behavioral and contextual differences behind useful vs.
 non-useful feedback.
+
+user cli:
+python3 pattern-mining/helpfulness.py -u 2 -t 50 -s 0.10 -l 3
+
+category cli:
+python3 pattern-mining/helpfulness.py -u 2 -t 100 -s 0.05 -l 3
+
 """
 
 from pandas import DataFrame
@@ -90,7 +97,7 @@ if __name__ == "__main__":
     top_k = args.top_k
     min_sup = args.min_sup
     min_len = args.min_len
-    task = "user"
+    task = "cat"
 
     if task == "user":
         df = user_feature(
