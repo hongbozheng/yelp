@@ -1,0 +1,48 @@
+support,itemsets,city
+0.05858085808580858,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Boise
+0.05115511551155116,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},Boise
+0.052392739273927395,{'Beer', 'Restaurants', 'Food', 'Wine & Spirits'},Boise
+0.056518151815181515,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Boise
+0.07425742574257425,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Boise
+0.07077870573414828,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Indianapolis
+0.08244296178789717,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Indianapolis
+0.09490038725330098,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},Indianapolis
+0.10966036526754246,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},Nashville
+0.11174303107978212,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Nashville
+0.07826017302146748,{'Nightlife', 'Restaurants', 'Breakfast & Brunch', 'Bars'},Nashville
+0.11022108298622237,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Nashville
+0.05326818327459148,{'American (New)', 'Nightlife', 'Cocktail Bars', 'Bars'},Nashville
+0.05326818327459148,{'American (New)', 'Restaurants', 'Cocktail Bars', 'Bars'},Nashville
+0.05326818327459148,{'American (New)', 'Nightlife', 'Restaurants', 'Cocktail Bars'},Nashville
+0.05326818327459148,{'Nightlife', 'American (New)', 'Cocktail Bars', 'Bars', 'Restaurants'},Nashville
+0.08963473245754566,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Nashville
+0.06575428661318232,{'Nightlife', 'Restaurants', 'Food', 'Bars'},New Orleans
+0.0615070001573069,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},New Orleans
+0.06213622778039956,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},New Orleans
+0.05875412930627655,{'Nightlife', 'Restaurants', 'Cajun/Creole', 'Bars'},New Orleans
+0.09705836086204184,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},New Orleans
+0.052383199622463426,{'Nightlife', 'Restaurants', 'Seafood', 'Bars'},New Orleans
+0.08176949180260845,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Philadelphia
+0.053886095097918967,{'Nightlife', 'Restaurants', 'Breakfast & Brunch', 'Bars'},Philadelphia
+0.06038676969622634,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},Philadelphia
+0.059569074778200254,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Philadelphia
+0.06472055276176458,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Philadelphia
+0.051299667926256724,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Reno
+0.08024691358024691,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Saint Louis
+0.10776748971193416,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Saint Louis
+0.05581275720164609,{'Nightlife', 'Restaurants', 'Wine Bars', 'Bars'},Saint Louis
+0.11008230452674897,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},Saint Louis
+0.05426954732510288,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Saint Louis
+0.07087126137841353,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Santa Barbara
+0.05851755526657997,{'Nightlife', 'Restaurants', 'Seafood', 'Bars'},Santa Barbara
+0.08550065019505852,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Santa Barbara
+0.05364109232769831,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},Santa Barbara
+0.053315994798439535,{'Nightlife', 'Restaurants', 'Breakfast & Brunch', 'Bars'},Santa Barbara
+0.09265279583875162,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Santa Barbara
+0.06442914922301853,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},Tampa
+0.06662882281983963,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Tampa
+0.09110906123607465,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Tampa
+0.07209252820549208,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Tampa
+0.053548002385211686,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Tucson
+0.05462134764460346,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Tucson
+0.05748360166964818,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},Tucson

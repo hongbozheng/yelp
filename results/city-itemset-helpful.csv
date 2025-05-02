@@ -1,0 +1,37 @@
+support,itemsets,city
+0.053519061583577714,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Boise
+0.07111436950146628,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Boise
+0.05718475073313783,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Boise
+0.051319648093841645,{'Beer', 'Restaurants', 'Food', 'Wine & Spirits'},Boise
+0.061488915518274415,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Indianapolis
+0.06426003594967046,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Indianapolis
+0.07811563810665069,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},Indianapolis
+0.08248794279062033,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Nashville
+0.09911857641776152,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Nashville
+0.06120073174787959,{'Nightlife', 'Restaurants', 'Breakfast & Brunch', 'Bars'},Nashville
+0.10061533344420423,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},Nashville
+0.09995010809911857,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Nashville
+0.056081808396124866,{'Nightlife', 'Restaurants', 'Food', 'Bars'},New Orleans
+0.0527448869752422,{'Nightlife', 'Restaurants', 'Cajun/Creole', 'Bars'},New Orleans
+0.05694294940796556,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},New Orleans
+0.05683530678148547,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},New Orleans
+0.09494079655543596,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},New Orleans
+0.05322974187748812,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Philadelphia
+0.06979581353537948,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Philadelphia
+0.05130345447540773,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},Philadelphia
+0.0633106459483755,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Philadelphia
+0.05911539552027219,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Reno
+0.05422455344485398,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Reno
+0.05089311029203289,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Reno
+0.06759443339960239,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Saint Louis
+0.1073558648111332,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Saint Louis
+0.0636182902584493,{'Nightlife', 'Restaurants', 'Wine Bars', 'Bars'},Saint Louis
+0.055168986083499,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Saint Louis
+0.10934393638170974,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},Saint Louis
+0.08527671423599026,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Santa Barbara
+0.08771319178558998,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Santa Barbara
+0.09885137486947441,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Santa Barbara
+0.060730991833822245,{'Nightlife', 'Restaurants', 'Food', 'Bars'},Tampa
+0.05113771505589471,{'Nightlife', 'Restaurants', 'American (Traditional)', 'Bars'},Tampa
+0.07642908110679458,{'American (New)', 'Nightlife', 'Restaurants', 'Bars'},Tampa
+0.06128597478791723,{'Nightlife', 'Restaurants', 'Cocktail Bars', 'Bars'},Tampa
