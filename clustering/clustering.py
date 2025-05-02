@@ -23,8 +23,6 @@ def kmeans_tsne(
         method: str,
         perplexity: int,
 ):
-    print("🔄 [INFO] Scaling user features...")
-    print(df.columns)
     X = df.drop(columns=['user_id', 'label'], errors='ignore')
 
     best_k = None
@@ -147,10 +145,6 @@ if __name__ == "__main__":
         min_useful=min_useful,
         useful_thres=1.2,
     )
-
-    nan_rows = df[df.isna().any(axis=1)]
-    print(f"🔍 [INFO] Found {len(nan_rows)} rows with NaN values.")
-    print(nan_rows)
 
     df, _, _ = kmeans_tsne(
         df=df, k_range=[2, 8], random_state=42, method="t-SNE", perplexity=35
