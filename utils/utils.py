@@ -93,14 +93,17 @@ def review_feature(
     print("🎯 [INFO] Creating target variable...")
     df['label'] = (df['useful'] >= min_useful).astype(int)
 
+    print(f"✅ [INFO] Final review feature shape {df.shape}")
+
     return df, top_cats
 
 
 def rule_feature(
         df: DataFrame,
         exclude_cols: List[str],
+        percentile: float,
 ):
-    print("🔁 [INFO] Performing median binarization...")
+    print(f"🔁 [INFO] Performing top {int((1 - percentile) * 100)}% binarization...")
     exclude_cols.extend(['label', 'useful'])
     cols = df.select_dtypes(include='number').columns.difference(exclude_cols)
 
@@ -108,16 +111,17 @@ def rule_feature(
     for col in cols:
         if col in exclude_cols:
             continue
-        df[col] = (df[col] >= df[col].median()).astype(int)
-        counts = df[col].value_counts().sort_index()
-        count_0 = counts.get(0, 0)
-        count_1 = counts.get(1, 0)
-        print(f"{col:<25}: 0s = {count_0:<6} | 1s = {count_1}")
+        thres = df[col].quantile(percentile)
+        df[col] = (df[col] >= thres).astype(int)
+        total = len(df)
+        ones = df[col].sum()
+        zeros = total - ones
+        one_pct = ones / total
+        zero_pct = zeros / total
+        print(f"{col:<25}: 0s = {zeros:<6} [{zero_pct:8.4%}] | 1s = {ones:<6} [{one_pct:8.4%}]")
 
-    print(df.head(5))
-    # print(df.columns)
     print(f"✅ [INFO] Binarized {len(cols)} columns.")
-    print(f"✅ [INFO] Dataframe shape {df.shape}.")
+    print(f"✅ [INFO] Final rule feature shape {df.shape}")
 
     return df
 
