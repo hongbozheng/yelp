@@ -38,7 +38,7 @@ def apriori_analysis(
 
     print(f"📊 Running Apriori for {label} reviews...")
     # freq_itemsets = apriori(df=df, min_support=min_sup, use_colnames=True)
-    freq_itemsets = fpgrowth(df=df, min_support=min_sup, use_colnames=True, max_len=5)
+    freq_itemsets = fpgrowth(df=df, min_support=min_sup, use_colnames=True, max_len=6)
     freq_itemsets['group'] = label
 
     return freq_itemsets
@@ -46,9 +46,8 @@ def apriori_analysis(
 
 def user_helpfulness(
         df: DataFrame,
-        min_sup: float = 0.05,
-        min_len: int = 2,
-        kulc: float = 0.75,
+        min_sup: float = 0.10,
+        min_len: int = 3,
 ):
     features = [
         'user_id', 'stars', 'useful', 'funny', 'cool', 'review', 'review_count',
@@ -76,28 +75,32 @@ def user_helpfulness(
     print("🔍 [INFO] Filtering by itemset length...")
     df = df[df['itemsets'].apply(lambda x: len(x) >= min_len)]
 
-    # Pivot: itemsets as index, columns = support per group
-    df = df.pivot_table(
-        index='itemsets', columns='group', values='support', fill_value=0
-    )
-    df = df.reset_index()
+    print("📏 [INFO] Sorting by itemset length (descending)...")
+    df['itemset_len'] = df['itemsets'].apply(len)
+    df = df.sort_values(by='itemset_len', ascending=False)
 
-    # Confidence metrics
-    total = df['helpful'] + df['unhelpful'] + 1e-9  # avoid divide-by-zero
-    df['conf_helpful'] = df['helpful'] / total
-    df['conf_unhelpful'] = df['unhelpful'] / total
-    df['total_support'] = total
-
-    # Sort by most discriminative helpful patterns
-    df = df.sort_values(
-        by=['conf_helpful', 'total_support'], ascending=[False, False]
-    )
+    # # Pivot: itemsets as index, columns = support per group
+    # df = df.pivot_table(
+    #     index='itemsets', columns='group', values='support', fill_value=0
+    # )
+    # df = df.reset_index()
+    #
+    # # Confidence metrics
+    # total = df['helpful'] + df['unhelpful'] + 1e-9  # avoid divide-by-zero
+    # df['conf_helpful'] = df['helpful'] / total
+    # df['conf_unhelpful'] = df['unhelpful'] / total
+    # df['total_support'] = total
+    #
+    # # Sort by most discriminative helpful patterns
+    # df = df.sort_values(
+    #     by=['conf_helpful', 'total_support'], ascending=[False, False]
+    # )
 
     print("📌 Top patterns overrepresented in helpful reviews:")
-    # print(df.shape)
     print(df.head(10))
     print(df.tail(10))
 
+    print("💾 [INFO] Saving to `itemset-helpfulness.csv`...")
     os.makedirs(name='results', exist_ok=True)
     df.to_csv("results/itemset-helpfulness.csv", index=False)
 
@@ -138,20 +141,12 @@ if __name__ == "__main__":
         required=True,
         help="Minimum length of itemset",
     )
-    parser.add_argument(
-        "--kulc",
-        "-k",
-        type=float,
-        required=True,
-        help="Kulczynski Measure",
-    )
 
     args = parser.parse_args()
     min_useful = args.min
     top_k = args.top_k
     min_sup = args.min_sup
     min_len = args.min_len
-    kulc = args.kulc
 
     df = user_feature(
         review_fp="data/review.json",
