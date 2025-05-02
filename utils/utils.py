@@ -113,6 +113,8 @@ def review_feature(
         df.set_index(['user_id', 'business_id']).index.map(tip_counts).fillna(0)
     )
 
+    df = df.dropna()
+
     print("🎯 [INFO] Creating target variable...")
     df['label'] = (df['useful'] >= min_useful).astype(int)
     total = df['label'].shape[0]
@@ -185,6 +187,8 @@ def user_feature(
     df = df.groupby('user_id').mean().reset_index()
     print(f"✅ [INFO] Aggregated features for {len(df)} users.")
 
+    df = df.dropna()
+
     print(f"🎯 [INFO] Creating binary label using threshold: useful ≥ {useful_thres}")
     df['label'] = (df['useful'] >= useful_thres).astype(int)
     print(df.head(10))
@@ -209,6 +213,9 @@ def binarize(
     cols = df.select_dtypes(include='number')
     print("📊 [INFO] Distribution of 0s and 1s in binarized columns:")
     for col in cols:
+        if col == 'label':
+            continue
+
         if type(method) == float:
             thres = df[col].quantile(method)
         else:

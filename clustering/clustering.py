@@ -13,8 +13,7 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.metrics import silhouette_score
-from sklearn.preprocessing import StandardScaler
-from utils.utils import load_merge, build_user_feature_matrix
+from utils.utils import user_feature
 
 
 def kmeans_tsne(
@@ -25,8 +24,8 @@ def kmeans_tsne(
         perplexity: int,
 ):
     print("🔄 [INFO] Scaling user features...")
-    features = df.drop(columns=['user_id'], errors='ignore')
-    X = StandardScaler().fit_transform(features)
+    print(df.columns)
+    X = df.drop(columns=['user_id', 'label'], errors='ignore')
 
     best_k = None
     best_score = -1
@@ -51,9 +50,7 @@ def kmeans_tsne(
         #     best_labels = labels
         #     break
 
-    print(
-        f"🏆 [INFO] Best k = {best_k} with Silhouette Score = {best_score:.4f}"
-    )
+    print(f"🏆 [INFO] Best k = {best_k} with Silhouette Score = {best_score:.4f}")
 
     # Project to 2D with t-SNE or PCA
     print(f"📐 [INFO] Projecting with {method.upper()} for 2D visualization...")
@@ -122,6 +119,13 @@ if __name__ == "__main__":
         prog="clustering", description="K-Means User Clustering"
     )
     parser.add_argument(
+        "--min",
+        "-u",
+        type=int,
+        required=True,
+        help="Minimum number of useful needed to retain a pattern",
+    )
+    parser.add_argument(
         "--top_k",
         "-t",
         type=int,
@@ -130,17 +134,23 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    min_useful = args.min
     top_k = args.top_k
 
-    df = load_merge(
-        review_fp="data/review.json", business_fp="data/business.json"
-    )
-    df = build_user_feature_matrix(
-        df=df,
+    df = user_feature(
+        review_fp="data/review.json",
+        business_fp="data/business.json",
+        user_fp="data/user.json",
         checkin_fp="data/checkin.json",
         tip_fp="data/tip.json",
         top_k=top_k,
+        min_useful=min_useful,
+        useful_thres=1.2,
     )
+
+    nan_rows = df[df.isna().any(axis=1)]
+    print(f"🔍 [INFO] Found {len(nan_rows)} rows with NaN values.")
+    print(nan_rows)
 
     df, _, _ = kmeans_tsne(
         df=df, k_range=[2, 8], random_state=42, method="t-SNE", perplexity=35
