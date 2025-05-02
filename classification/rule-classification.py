@@ -10,28 +10,6 @@ from mlxtend.frequent_patterns import apriori, association_rules, fpgrowth
 from sklearn.metrics import classification_report, confusion_matrix
 from utils.utils import review_feature, rule_feature
 
-FEATURES = [
-    'stars', 'cool', 'review', 'Restaurants',
-    'Food', 'Nightlife', 'Bars', 'American (New)', 'Breakfast & Brunch',
-    'American (Traditional)', 'Sandwiches', 'Coffee & Tea', 'Mexican',
-    'Event Planning & Services', 'Seafood', 'Cocktail Bars', 'Shopping',
-    'Burgers', 'Pizza', 'Desserts', 'Arts & Entertainment', 'Italian',
-    'Salad', 'Cafes', 'Bakeries', 'Specialty Food', 'Beer',
-    'Wine & Spirits', 'Japanese', 'Wine Bars', 'Chinese', 'Fast Food',
-    'Asian Fusion', 'Sushi Bars', 'Beauty & Spas', 'Venues & Event Spaces',
-    'Pubs', 'Caterers', 'Steakhouses', 'Active Life', 'Southern',
-    'Chicken Wings', 'Ice Cream & Frozen Yogurt', 'Vegetarian', 'Beer Bar',
-    'Sports Bars', 'Juice Bars & Smoothies', 'Grocery', 'Barbeque',
-    'Cajun/Creole', 'Tacos', 'Vegan', 'Mediterranean',
-    'review_count', 'useful_user', 'funny_user',
-    'cool_user', 'friend', 'fans', 'average_stars', 'rev-age',
-    # 'compliment_hot', 'compliment_more', 'compliment_note',
-    # 'compliment_plain', 'compliment_cool', 'compliment_funny',
-    # 'compliment_writer', 'compliment_photos',
-    # 'days_since_1st_rev', 'days_since_dataset_start',
-    'rev_freq_month', 'rev_freq_std',
-]
-
 
 def mine_rule(
         df: DataFrame,
@@ -53,7 +31,30 @@ def mine_rule(
     df = df.select_dtypes(include='number')
     df = df[df['label'] == 1].astype(bool)
     df = df.drop(columns=['label', 'userful', ], errors='ignore')
-    df = df[FEATURES]
+
+    features = [
+        'stars', 'cool', 'review', 'Restaurants',
+        'Food', 'Nightlife', 'Bars', 'American (New)', 'Breakfast & Brunch',
+        'American (Traditional)', 'Sandwiches', 'Coffee & Tea', 'Mexican',
+        'Event Planning & Services', 'Seafood', 'Cocktail Bars', 'Shopping',
+        'Burgers', 'Pizza', 'Desserts', 'Arts & Entertainment', 'Italian',
+        'Salad', 'Cafes', 'Bakeries', 'Specialty Food', 'Beer',
+        'Wine & Spirits', 'Japanese', 'Wine Bars', 'Chinese', 'Fast Food',
+        'Asian Fusion', 'Sushi Bars', 'Beauty & Spas', 'Venues & Event Spaces',
+        'Pubs', 'Caterers', 'Steakhouses', 'Active Life', 'Southern',
+        'Chicken Wings', 'Ice Cream & Frozen Yogurt', 'Vegetarian', 'Beer Bar',
+        'Sports Bars', 'Juice Bars & Smoothies', 'Grocery', 'Barbeque',
+        'Cajun/Creole', 'Tacos', 'Vegan', 'Mediterranean',
+        'review_count', 'useful_user', 'funny_user',
+        'cool_user', 'friend', 'fans', 'average_stars', 'rev-age',
+        # 'compliment_hot', 'compliment_more', 'compliment_note',
+        # 'compliment_plain', 'compliment_cool', 'compliment_funny',
+        # 'compliment_writer', 'compliment_photos',
+        # 'days_since_1st_rev', 'days_since_dataset_start',
+        'rev_freq_month', 'rev_freq_std',
+    ]
+
+    df = df[features]
 
     print(f"🧠 [INFO] Running Apriori...")
     # freq_itemsets = apriori(df=df, min_support=min_sup, use_colnames=True)
