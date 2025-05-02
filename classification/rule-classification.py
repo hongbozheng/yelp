@@ -7,7 +7,30 @@ from sklearn.metrics import classification_report, confusion_matrix
 from utils import review_feature
 
 
-def mine_patterns(
+def rule_feature(
+        df: DataFrame,
+        exclude_cols: List[str],
+):
+    print("🔁 [INFO] Performing median binarization...")
+    exclude_cols.extend(['label', 'useful'])
+    cols = df.select_dtypes(include='number').columns.difference(exclude_cols)
+
+    print("📊 [INFO] Distribution of 0s and 1s in binarized columns:")
+    for col in cols:
+        if col in exclude_cols:
+            continue
+        df[col] = (df[col] >= df[col].median()).astype(int)
+        counts = df[col].value_counts().sort_index()
+        count_0 = counts.get(0, 0)
+        count_1 = counts.get(1, 0)
+        print(f"{col:<25}: 0s = {count_0:<6} | 1s = {count_1}")
+
+    print(df.head(5))
+    # print(df.columns)
+    print(f"✅ [INFO] Binarized {len(cols)} columns.")
+
+
+def mine_rule(
         df: DataFrame,
         top_cats: List[str],
         min_sup: float = 0.02,
@@ -15,6 +38,8 @@ def mine_patterns(
         min_len: int = 2,
         kulc: float = 0.60,
 ):
+    df = rule_feature(df=df, exclude_cols=top_cats)
+    return
     print("📊 [INFO] Mining helpful rules...")
     total = df['label'].shape[0]
     pos = (df['label'] == 1).sum()
@@ -35,7 +60,7 @@ def mine_patterns(
         df=freq_itemsets, metric='confidence', min_threshold=min_conf
     )
 
-    # Filter rules with multiple antecedents and strong lift
+    # Filter rules with multiple antecedents and strong Kulczynski Measure
     rules = rules[
         (rules['antecedents'].apply(lambda x: len(x) >= min_len)) &
         (0.5 * (rules['support'] / rules['antecedent support'] +
@@ -48,7 +73,7 @@ def mine_patterns(
     return rules, top_cats
 
 
-def rules_classifier(df, rules, top_cats, min_useful):
+def rule_classifier(df, rules, top_cats, min_useful):
     print("🧠 [INFO] Applying rules to classify reviews...")
 
     # Convert rules to list of antecedent sets
@@ -136,7 +161,7 @@ if __name__ == "__main__":
         top_k=top_k,
     )
 
-    rules, top_cats = mine_patterns(
+    rules, top_cats = mine_rule(
         df=df,
         top_cats=top_cats,
         min_sup=min_sup,
@@ -145,6 +170,6 @@ if __name__ == "__main__":
         kulc=kulc,
     )
 
-    rules_classifier(
+    rule_classifier(
         df=df, rules=rules, top_cats=top_cats, min_useful=min_useful
     )
