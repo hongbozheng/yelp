@@ -79,7 +79,7 @@ def mine_rule(
     print(f"✅ [INFO] Mined {len(rules)} rules for classification.")
 
     os.makedirs(name='results', exist_ok=True)
-    rules.to_csv("results/rules.csv", index=False)
+    rules.to_csv("results/rule-helpful.csv", index=False)
 
     return rules, top_cats
 
