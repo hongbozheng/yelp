@@ -10,10 +10,10 @@ This gives insight into behavioral and contextual differences behind useful vs.
 non-useful feedback.
 
 user cli:
-python3 pattern-mining/helpfulness.py -u 2 -t 50 -s 0.10 -l 3
+python3 pattern-mining/helpfulness.py -t 50 -u 2 -s 0.10 -l 3
 
 category cli:
-python3 pattern-mining/helpfulness.py -u 2 -t 100 -s 0.05 -l 3
+python3 pattern-mining/helpfulness.py -t 100 -u 2 -s 0.05 -l 3
 
 """
 
@@ -28,10 +28,10 @@ from mlxtend.frequent_patterns import apriori, association_rules, fpgrowth
 from utils.utils import review_feature, user_feature, binarize
 
 
-def cat_helpfulness(
+def mine_pattern(
         df: DataFrame,
         min_sup: float = 0.10,
-        min_len: int = 3,
+        k: int = 3,
 ):
     df = df.drop(columns=['label'])
     df = df.astype(bool)
@@ -40,12 +40,12 @@ def cat_helpfulness(
     )
 
     rules = association_rules(df, metric='lift', min_threshold=1.2)
-    rules = rules[rules['antecedents'].apply(lambda x: len(x) >= min_len)]
+    rules = rules[rules['antecedents'].apply(lambda x: len(x) >= k)]
     print("📌 Top rules overrepresented in reviews:")
     print(rules.head(10))
 
     print("🔍 [INFO] Filtering by itemset length...")
-    df = df[df['itemsets'].apply(lambda x: len(x) >= min_len)]
+    df = df[df['itemsets'].apply(lambda x: len(x) >= k)]
 
     print("📏 [INFO] Sorting by itemset length (descending)...")
     df['itemset_len'] = df['itemsets'].apply(len)
@@ -64,18 +64,18 @@ if __name__ == "__main__":
         prog="pattern_mining", description="Mine frequent pattern"
     )
     parser.add_argument(
-        "--min",
-        "-u",
-        type=int,
-        required=True,
-        help="Minimum number of useful needed to retain a pattern",
-    )
-    parser.add_argument(
         "--top_k",
         "-t",
         type=int,
         required=True,
         help="Top-k for one-hot encoding",
+    )
+    parser.add_argument(
+        "--min",
+        "-u",
+        type=int,
+        required=True,
+        help="Minimum number of useful needed to retain a pattern",
     )
     parser.add_argument(
         "--min_sup",
@@ -85,18 +85,18 @@ if __name__ == "__main__":
         help="Minimum support",
     )
     parser.add_argument(
-        "--min_len",
-        "-l",
-        type=float,
+        "--k_itemset",
+        "-k",
+        type=int,
         required=True,
-        help="Minimum length of itemset",
+        help="k-itemset",
     )
 
     args = parser.parse_args()
-    min_useful = args.min
     top_k = args.top_k
+    min_useful = args.min
     min_sup = args.min_sup
-    min_len = args.min_len
+    k = args.k_itemset
     task = "cat"
 
     if task == "user":
@@ -143,10 +143,10 @@ if __name__ == "__main__":
         top_cats.extend(['label'])
         df = df[top_cats]
 
-    helpful_df, helpful_rules = cat_helpfulness(
+    helpful_df, helpful_rules = mine_pattern(
         df=df[df['label'] == 1],
         min_sup=min_sup,
-        min_len=min_len,
+        k=k,
     )
 
     print(f"💾 [INFO] Saving to `{task}-itemset-helpful.csv`...")
@@ -154,10 +154,10 @@ if __name__ == "__main__":
     helpful_df.to_csv(f"results/{task}-itemset-helpful.csv", index=False)
     helpful_rules.to_csv(f"results/{task}-rule-helpful.csv", index=False)
 
-    unhelpful_df, unhelpful_rules = cat_helpfulness(
+    unhelpful_df, unhelpful_rules = mine_pattern(
         df=df[df['label'] == 0],
         min_sup=min_sup,
-        min_len=min_len,
+        k=k,
     )
 
     print(f"💾 [INFO] Saving to `{task}-itemset-unhelpful.csv`...")
