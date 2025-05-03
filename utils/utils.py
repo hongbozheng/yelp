@@ -2,6 +2,7 @@ from pandas import DataFrame
 from typing import List, Union
 
 import matplotlib.pyplot as plt
+import numpy as np
 import networkx as nx
 import pandas as pd
 import plotly.graph_objects as go
@@ -11,7 +12,7 @@ import seaborn as sns
 def parse_elite(elite):
     if pd.isna(elite) or elite.strip() == '':
         return 0
-    yrs = elite.replace("20,20", "2020").split(sep=', ')
+    yrs = elite.replace("20,20", "2020").split(sep=',')
     yrs = {yr.strip() for yr in yrs if yr.strip().isdigit() and len(yr.strip()) == 4}
     return len(yrs)
 
@@ -77,7 +78,7 @@ def review_feature(
 
     print("📂 [INFO] Loading check-in...")
     checkin_df = pd.read_json(path_or_buf=checkin_fp, lines=True)
-    checkin_df['checkin_count'] = checkin_df['date'].str.count(",") + 1
+    checkin_df['checkin_count'] = len(checkin_df['date'])
     checkin_sum = checkin_df.groupby('business_id')['checkin_count'].sum()
     print("🔗 [INFO] Adding check-in to review...")
     df['check-in'] = df['business_id'].map(checkin_sum).fillna(0)
@@ -128,6 +129,8 @@ def rule_feature(
         zero_pct = zeros / total
         print(f"{col:<25}: 0s = {zeros:<6} [{zero_pct:8.4%}] | 1s = {ones:<6} [{one_pct:8.4%}]")
 
+    df = df.dropna()
+
     print(f"✅ [INFO] Binarized {len(cols)} columns.")
     print(f"✅ [INFO] Final rule feature shape {df.shape}")
 
@@ -175,6 +178,91 @@ def user_feature(
     print(f"📊 [INFO] Label Distribution:")
     print(f"[INFO] ➤ Helpful     [1]: {pos} {pos / total:.4%}")
     print(f"[INFO] ➤ Not helpful [0]: {neg} {neg / total:.4%}")
+
+    return df
+
+
+def parse_hours_range(hr_str):
+    try:
+        open_hr, close_hr = map(str.strip, hr_str.split("-"))
+        open_h, open_m = map(int, open_hr.split(":"))
+        close_h, close_m = map(int, close_hr.split(":"))
+
+        open_min = open_h * 60 + open_m
+        close_min = close_h * 60 + close_m
+
+        # handle overnight (close < open)
+        if close_min <= open_min:
+            close_min += 1440
+
+        return round((close_min - open_min) / 60.0, 2)
+    except:
+        return np.nan
+
+
+def business_feature(
+        business_fp: str,
+        checkin_fp: str,
+        top_k: int,
+        min_useful: int,
+        useful_thres: float,
+):
+    print("📂 [INFO] Loading businesses...")
+    df = pd.read_json(path_or_buf=business_fp, lines=True)
+    print("📂 [INFO] Loading check-in...")
+    checkin_df = pd.read_json(path_or_buf=checkin_fp, lines=True)
+    checkin_df['checkin_count'] = len(checkin_df['date'])
+    checkin_sum = checkin_df.groupby('business_id')['checkin_count'].sum()
+    print("🔗 [INFO] Adding check-in to review...")
+    df['check-in'] = df['business_id'].map(checkin_sum).fillna(0)
+
+    features = [
+        'business_id', 'stars', 'review_count', 'is_open',
+        # 'attributes',
+        'categories', 'hours', 'check-in',
+    ]
+
+    df = df[features].dropna()
+
+    print("🧹 [INFO] Converting categories...")
+    df['categories'] = df['categories'].str.split(', ')
+
+    print(f"🧹 [INFO] Using top-{top_k} categories...")
+    top_cats = df['categories'].explode().dropna().value_counts().head(top_k) \
+        .index.tolist()
+    print(f"📊 [INFO] Binarize category features...")
+    for cat in top_cats:
+        df[cat] = df['categories'].apply(lambda x: int(cat in x))
+
+    print("🧹 [INFO] Converting features...")
+
+    print("⏰ [INFO] Parsing business hours...")
+    weekdays = [
+        'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
+        'Saturday', 'Sunday',
+    ]
+    rename_map = {
+        'Monday': 'mon', 'Tuesday': 'tue', 'Wednesday': 'wed',
+        'Thursday': 'thu', 'Friday': 'fri', 'Saturday': 'sat', 'Sunday': 'sun',
+    }
+    hours_df = df['hours'].dropna().apply(pd.Series)[weekdays].applymap(
+        parse_hours_range
+    )
+    hours_df.rename(columns=rename_map, inplace=True)
+    df = df.drop(columns='hours', errors='ignore')
+    df = pd.concat(objs=[df, hours_df], axis=1)
+
+    df = df.dropna()
+
+    print(f"✅ [INFO] Final shape: {df.shape}")
+
+    # print(df.columns)
+    # df = df.select_dtypes(include='number')
+    # print(df.columns)
+    # print(df.columns)
+    # for col in df.columns:
+    #     print(df[col].nunique())
+    #     print(df[col].dtype)
 
     return df
 

@@ -10,7 +10,7 @@ import seaborn as sns
 from scipy.cluster.hierarchy import dendrogram, linkage
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import AgglomerativeClustering
-from utils.utils import load_merge, build_user_feature_matrix
+from utils.utils import user_feature
 
 
 def hierarchical_clustering(df, sample_size=500, n_clusters=5,
@@ -73,18 +73,27 @@ if __name__ == "__main__":
         required=True,
         help="Top-k for one-hot encoding",
     )
+    parser.add_argument(
+        "--min",
+        "-u",
+        type=int,
+        required=True,
+        help="Minimum number of useful needed to retain a pattern",
+    )
 
     args = parser.parse_args()
     top_k = args.top_k
+    min_useful = args.min
 
-    df = load_merge(
-        review_fp="data/review.json", business_fp="data/business.json"
-    )
-    df = build_user_feature_matrix(
-        df=df,
+    df = user_feature(
+        review_fp="data/review.json",
+        business_fp="data/business.json",
+        user_fp="data/user.json",
         checkin_fp="data/checkin.json",
         tip_fp="data/tip.json",
         top_k=top_k,
+        min_useful=min_useful,
+        useful_thres=1.2,
     )
 
     hierarchical_clustering(df=df)

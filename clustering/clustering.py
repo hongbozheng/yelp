@@ -1,3 +1,8 @@
+"""
+python3 clustering/clustering.py -t 50 -u 2
+"""
+
+
 from pandas import DataFrame
 from typing import List
 
@@ -13,17 +18,20 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.metrics import silhouette_score
-from utils.utils import user_feature
+from utils.utils import user_feature, business_feature
 
 
-def kmeans_tsne(
+def kmeans(
         df: DataFrame,
         k_range: List[int],
         random_state: int,
         method: str,
         perplexity: int,
 ):
-    X = df.drop(columns=['user_id', 'label'], errors='ignore')
+    X = df.drop(
+        columns=['user_id', 'label', 'business_id', 'categories'],
+        errors='ignore',
+    )
 
     best_k = None
     best_score = -1
@@ -117,23 +125,23 @@ if __name__ == "__main__":
         prog="clustering", description="K-Means User Clustering"
     )
     parser.add_argument(
-        "--min",
-        "-u",
-        type=int,
-        required=True,
-        help="Minimum number of useful needed to retain a pattern",
-    )
-    parser.add_argument(
         "--top_k",
         "-t",
         type=int,
         required=True,
         help="Top-k for one-hot encoding",
     )
+    parser.add_argument(
+        "--min",
+        "-u",
+        type=int,
+        required=True,
+        help="Minimum number of useful needed to retain a pattern",
+    )
 
     args = parser.parse_args()
-    min_useful = args.min
     top_k = args.top_k
+    min_useful = args.min
 
     df = user_feature(
         review_fp="data/review.json",
@@ -146,7 +154,15 @@ if __name__ == "__main__":
         useful_thres=1.2,
     )
 
-    df, _, _ = kmeans_tsne(
+    # df = business_feature(
+    #     business_fp="data/business.json",
+    #     checkin_fp="data/checkin.json",
+    #     top_k=top_k,
+    #     min_useful=min_useful,
+    #     useful_thres=1.2,
+    # )
+
+    df, _, _ = kmeans(
         df=df, k_range=[2, 8], random_state=42, method="t-SNE", perplexity=35
     )
 
