@@ -1,3 +1,7 @@
+"""
+python3 classification/rule-classification.py -t 50 -u 2 -s 0.10 -k 3 -c 0.75
+"""
+
 from pandas import DataFrame
 from typing import List
 
@@ -11,28 +15,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from utils.utils import review_feature, rule_feature
 
 
-def mine_rule(
-        df: DataFrame,
-        top_cats: List[str],
-        min_sup: float = 0.10,
-        min_conf: float = 0.50,
-        min_len: int = 2,
-        kulc: float = 0.80,
-):
-    print("📊 [INFO] Mining helpful rules...")
-    total = df['label'].shape[0]
-    pos = (df['label'] == 1).sum()
-    neg = (df['label'] == 0).sum()
-    print(f"📊 [INFO] Label Distribution:")
-    print(f"[INFO] ➤ Helpful     [1]: {pos} {pos/total:.4%}")
-    print(f"[INFO] ➤ Not helpful [0]: {neg} {neg/total:.4%}")
-    # print(df.columns)
-    # exit(0)
-    df = df.select_dtypes(include='number')
-    df = df[df['label'] == 1].astype(bool)
-    df = df.drop(columns=['label', 'userful', ], errors='ignore')
-
-    features = [
+FEATURES = [
         'stars', 'cool', 'review', 'Restaurants',
         'Food', 'Nightlife', 'Bars', 'American (New)', 'Breakfast & Brunch',
         'American (Traditional)', 'Sandwiches', 'Coffee & Tea', 'Mexican',
@@ -54,20 +37,40 @@ def mine_rule(
         'rev_freq_month', 'rev_freq_std',
     ]
 
-    df = df[features]
+
+def mine_rule(
+        df: DataFrame,
+        top_cats: List[str],
+        min_sup: float = 0.10,
+        k: int = 3,
+        kulc: float = 0.80,
+):
+    print("📊 [INFO] Mining helpful rules...")
+    total = df['label'].shape[0]
+    pos = (df['label'] == 1).sum()
+    neg = (df['label'] == 0).sum()
+    print(f"📊 [INFO] Label Distribution:")
+    print(f"[INFO] ➤ Helpful     [1]: {pos} {pos/total:.4%}")
+    print(f"[INFO] ➤ Not helpful [0]: {neg} {neg/total:.4%}")
+
+    df = df.select_dtypes(include='number')
+    df = df[df['label'] == 1].astype(bool)
+    df = df.drop(columns=['label', 'userful', ], errors='ignore')
+
+    df = df[FEATURES]
 
     print(f"🧠 [INFO] Running Apriori...")
     # freq_itemsets = apriori(df=df, min_support=min_sup, use_colnames=True)
-    freq_itemsets = fpgrowth(df=df, min_support=min_sup, use_colnames=True, max_len=5)
+    freq_itemsets = fpgrowth(df=df, min_support=min_sup, use_colnames=True, max_len=8)
     print(f"✅ [INFO] Found {len(freq_itemsets)} frequent itemsets.")
 
     rules = association_rules(
-        df=freq_itemsets, metric='confidence', min_threshold=min_conf
+        df=freq_itemsets, metric='lift', min_threshold=1.2
     )
 
     # Filter rules with multiple antecedents and strong Kulczynski Measure
     rules = rules[
-        (rules['antecedents'].apply(lambda x: len(x) >= min_len)) &
+        (rules['antecedents'].apply(lambda x: len(x) >= k)) &
         (0.5 * (rules['support'] / rules['antecedent support'] +
             rules['support'] / rules['consequent support']
         ) > kulc)
@@ -81,24 +84,23 @@ def mine_rule(
     return rules, top_cats
 
 
-def rule_classifier(df, rules, top_cats, min_useful):
+def rule_classifier(df, rules):
     print("🧠 [INFO] Applying rules to classify reviews...")
 
     # Convert rules to list of antecedent sets
-    rule_antecedents = [set(rule) for rule in rules['antecedents']]
+    rule_antecedents = rules['antecedents'].apply(set).tolist()
 
     # Precompute review category sets
-    review_cat_sets = df[top_cats].astype(bool).apply(
+    review_feature_sets = df[FEATURES].astype(bool).apply(
         lambda row: set(row[row].index), axis=1
     )
 
     # For each review, check if it matches any antecedent
-    def match_review(cats):
-        return any(rule.issubset(cats) for rule in rule_antecedents)
+    def match_review(feat_set):
+        return any(rule.issubset(feat_set) for rule in rule_antecedents)
 
-    print("⚡ [INFO] Classifying reviews via rule match...")
-    df['rule_pred'] = [int(match_review(cats)) for cats in review_cat_sets]
-    df['label'] = (df['useful'] >= min_useful).astype(int)
+    print(f"⚡ [INFO] Classifying {len(df)} reviews using {len(rule_antecedents)} rules...")
+    df['rule_pred'] = review_feature_sets.apply(match_review).astype(int)
 
     print("📊 [INFO] Rule-Based Classification Report:")
     print(classification_report(df['label'], df['rule_pred']))
@@ -131,22 +133,15 @@ if __name__ == "__main__":
         help="Minimum support",
     )
     parser.add_argument(
-        "--min_conf",
-        "-c",
-        type=float,
-        required=True,
-        help="Minimum confidence",
-    )
-    parser.add_argument(
-        "--min_len",
-        "-l",
+        "--k_itemset",
+        "-k",
         type=int,
         required=True,
-        help="Minimum length of itemsets",
+        help="k-itemset",
     )
     parser.add_argument(
         "--kulc",
-        "-k",
+        "-c",
         type=float,
         required=True,
         help="Kulczynski Measure",
@@ -155,8 +150,7 @@ if __name__ == "__main__":
     top_k = args.top_k
     min_useful = args.min
     min_sup = args.min_sup
-    min_conf = args.min_conf
-    min_len = args.min_len
+    k = args.k_itemset
     kulc = args.kulc
 
     df, top_cats = review_feature(
@@ -175,11 +169,8 @@ if __name__ == "__main__":
         df=df,
         top_cats=top_cats,
         min_sup=min_sup,
-        min_conf=min_conf,
-        min_len=min_len,
+        k=k,
         kulc=kulc,
     )
 
-    rule_classifier(
-        df=df, rules=rules, top_cats=top_cats, min_useful=min_useful
-    )
+    rule_classifier(df=df, rules=rules)
