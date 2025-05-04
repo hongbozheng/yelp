@@ -23,9 +23,8 @@ from sklearn.svm                import SVC
 from xgboost                    import XGBClassifier
 
 from sentence_transformers      import SentenceTransformer
-from utils.utils                import review_feature
+from utils.utils                import review_feature, balance_classes
 
-# 选一个小而快的模型，也可以换成 all-mpnet-base-v2（768 维）
 EMBED_MODEL = 'all-MiniLM-L6-v2'
 
 MODELS = {
@@ -115,7 +114,7 @@ if __name__ == '__main__':
     parser.add_argument("-k", "--top_k",  type=int, default=50,
                         help="(unused) top_k for review_feature")
     parser.add_argument("-m", "--model",  choices=list(MODELS.keys()),
-                        default='Logistic', help="classifier")
+                        default='RandomForest', help="classifier")
     parser.add_argument("-e", "--embed_model",
                         type=str, default=EMBED_MODEL,
                         help="sentence-transformers model")
@@ -133,6 +132,9 @@ if __name__ == '__main__':
         top_k=args.top_k,
         min_useful=args.min,
     )
+
+
+    df = balance_classes(df=df, seed=42)
 
     classification_embed_only(
         df=df,

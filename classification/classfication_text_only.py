@@ -21,6 +21,10 @@ from xgboost                        import XGBClassifier
 
 from utils.utils import review_feature
 
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 MODELS = {
     'Logistic':    LogisticRegression(max_iter=1000, C=1.0, penalty='l2'),
@@ -107,12 +111,12 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-m", "--model",
-        choices=list(MODELS.keys()), default="Logistic",
+        choices=list(MODELS.keys()), default="RandomForest",
         help="Which classifier to use"
     )
     parser.add_argument(
         "-n", "--ngram_range",
-        nargs=2, type=int, default=[1, 5],
+        nargs=2, type=int, default=[1, 4],
         metavar=('MIN_N', 'MAX_N'),
         help="The n-gram range for TF-IDF (e.g. 1 2)"
     )
@@ -158,3 +162,56 @@ if __name__ == "__main__":
         min_df=args.min_df,
         max_df=args.max_df
     )
+
+    # texts = df['text'].fillna("").tolist()
+    # vec = TfidfVectorizer(stop_words='english', ngram_range=(2, 2))
+    # X = vec.fit_transform(texts)
+    # names = vec.get_feature_names_out()
+    #
+    # mean_h = X[df['label'] == 1].mean(axis=0).A1
+    # mean_u = X[df['label'] == 0].mean(axis=0).A1
+    # diff = mean_h - mean_u
+    #
+    # k = 50
+    # idx_h = np.argsort(diff)[-k:]
+    # idx_u = np.argsort(diff)[:k]
+    #
+    # help_freq = {names[i]: diff[i] for i in idx_h}
+    # unhelp_freq = {names[i]: -diff[i] for i in idx_u}
+    #
+    # # --- Option A: built-in colormap ---
+    # wc1 = WordCloud(
+    #     width=800, height=400,
+    #     background_color='white',
+    #     colormap='Set2',  # ← nice pastel set of colors
+    # ).generate_from_frequencies(help_freq)
+    #
+    # wc2 = WordCloud(
+    #     width=800, height=400,
+    #     background_color='white',
+    #     colormap='Set2',
+    # ).generate_from_frequencies(unhelp_freq)
+    #
+    # # --- Option B: custom palette via color_func ---
+    # # colors = ["#2ca02c", "#9467bd", "#1f77b4"]  # green, purple, blue
+    # # def my_color_func(word, font_size, position, orientation, random_state=None, **kwargs):
+    # #     return random.choice(colors)
+    # # wc1 = WordCloud(width=800, height=400, background_color='white',
+    # #                 color_func=my_color_func) \
+    # #           .generate_from_frequencies(help_freq)
+    # # wc2 = WordCloud(width=800, height=400, background_color='white',
+    # #                 color_func=my_color_func) \
+    # #           .generate_from_frequencies(unhelp_freq)
+    #
+    # # 3) plot
+    # fig, axes = plt.subplots(1, 2, figsize=(16, 8))
+    # axes[0].imshow(wc1, interpolation='bilinear')
+    # axes[0].axis('off')
+    # axes[0].set_title("Helpful", fontsize=32, weight='bold')
+    #
+    # axes[1].imshow(wc2, interpolation='bilinear')
+    # axes[1].axis('off')
+    # axes[1].set_title("Unhelpful", fontsize=32, weight='bold')
+    #
+    # plt.tight_layout()
+    # plt.show()

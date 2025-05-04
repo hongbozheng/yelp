@@ -13,9 +13,25 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.metrics import silhouette_score
 from sklearn.ensemble import RandomForestClassifier
-from utils.utils import user_feature
+from utils.utils import user_feature, business_feature
 
 import plotly.express as px
+
+def filter_outlier(df: DataFrame, thres: float) -> DataFrame:
+    df = df.drop(
+        columns=['user_id', 'label', 'business_id', 'categories'],
+        errors='ignore',
+    )
+    # Compute z-scores
+    z_scores = (df - df.mean()) / df.std()
+
+    # Find rows where any feature has z-score beyond threshold
+    is_outlier = (np.abs(z_scores) >= thres).any(axis=1)
+    df = df[~is_outlier]
+
+    print(f"🔍 [INFO] Detected {is_outlier.sum()} outlier rows (z ≥ {thres})")
+
+    return df
 
 
 def kmeans_3d_plotly(
@@ -26,7 +42,7 @@ def kmeans_3d_plotly(
     perplexity: int,
 ):
     # 构造聚类输入 X，丢弃 user_id 和 label
-    X = df.drop(columns=['user_id', 'label'], errors='ignore')
+    X = df.drop(columns=['business_id', 'label'], errors='ignore')
 
     best_k = None
     best_score = -1
@@ -64,19 +80,20 @@ def kmeans_3d_plotly(
         width=800, height=600
     )
     fig1.update_traces(marker=dict(size=4))
-
-    # 2) 按 label 着色
-    fig2 = px.scatter_3d(
-        df_vis, x='x', y='y', z='z',
-        color='label',
-        title=f"{method.upper()} 3D by Label",
-        labels={'x':f'{method.upper()}1','y':f'{method.upper()}2','z':f'{method.upper()}3'},
-        width=800, height=600
-    )
-    fig2.update_traces(marker=dict(size=4))
-
     fig1.show()
-    fig2.show()
+
+    # # 2) 按 label 着色
+    # fig2 = px.scatter_3d(
+    #     df_vis, x='x', y='y', z='z',
+    #     color='label',
+    #     title=f"{method.upper()} 3D by Label",
+    #     labels={'x':f'{method.upper()}1','y':f'{method.upper()}2','z':f'{method.upper()}3'},
+    #     width=800, height=600
+    # )
+    # fig2.update_traces(marker=dict(size=4))
+    #
+
+    # fig2.show()
 
     return df_vis, best_k, best_score
 
@@ -126,7 +143,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--min", "-u", type=int, default=2)
     parser.add_argument("--top_k", "-t", type=int, default=50)
-    parser.add_argument("--method", "-m", choices=["tsne","pca"], default="tsne")
+    parser.add_argument("--method", "-m", choices=["tsne","pca"], default="pca")
     parser.add_argument("--perplexity", type=int, default=35)
     parser.add_argument("--kmin", type=int, default=2)
     parser.add_argument("--kmax", type=int, default=8)
@@ -144,6 +161,14 @@ if __name__ == "__main__":
         min_useful=args.min,
         useful_thres=1.2,
     )
+    # df = business_feature(
+    #     business_fp="../data/business.json",
+    #     checkin_fp="../data/checkin.json",
+    #     top_k=args.top_k,
+    #     min_useful=args.min,
+    #     useful_thres=1.2,
+    # )
+    df = filter_outlier(df=df, thres=3.0)
 
     # 2. 聚类与可视化
     df_vis, best_k, best_score = kmeans_3d_plotly(

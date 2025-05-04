@@ -29,11 +29,11 @@ if __name__ == "__main__":
         description="Visualize exclusive patterns for helpful vs. non-helpful reviews"
     )
     parser.add_argument(
-        "--task", choices=["user","category"], default="user",
+        "--task", choices=["user","category"], default="category",
         help="Which feature set to visualize"
     )
     parser.add_argument(
-        "--n", "-n", type=int, default=10,
+        "--n", "-n", type=int, default=7,
         help="Number of top patterns to show"
     )
     args = parser.parse_args()
@@ -55,43 +55,61 @@ if __name__ == "__main__":
     df_hn = df_help.head(topn)
     df_un = df_unh.head(topn)
 
-    # Create a 1x2 subplot figure
+    # Create a single-column subplot (we overlay helpful + unhelpful side by side)
     fig = make_subplots(
         rows=1, cols=1,
         shared_yaxes=True,
         horizontal_spacing=0.0,
-        subplot_titles=["Exclusive to Helpful", "Exclusive to Helpful"]
     )
 
-    # Left: Helpful
+    # Plot Helpful on the left half
     bar_h = px.bar(
         df_hn,
         x=diff_col,
         y="pattern",
-        orientation='h'
+        orientation='h',
+        color_discrete_sequence=['green']
     )
     for trace in bar_h.data:
+        trace.update(xaxis='x', yaxis='y')  # assign to the primary axes
+        trace.update(offsetgroup=0)
         fig.add_trace(trace, row=1, col=1)
 
-    if args.task == "category":
-        # Right: Unhelpful (sort so most negative at top)
-        bar_u = px.bar(
-            df_un,
-            x=diff_col,
-            y="pattern",
-            orientation='h'
-        )
-        for trace in bar_u.data:
-            fig.add_trace(trace, row=1, col=1)
-
-    # Update layout
-    fig.update_layout(
-        height=600,
-        width=1000,
-        title_text="Top Exclusive Patterns: Helpful vs. Unhelpful",
-        showlegend=False
+    # Plot Unhelpful on the right half (we shift its x-values negative to mirror)
+    bar_u = px.bar(
+        df_un,
+        x=df_un[diff_col].abs(),
+        y="pattern",
+        orientation='h',
+        color_discrete_sequence=['crimson']
     )
-    # Reverse y-axis so top bar is largest magnitude
+    for trace in bar_u.data:
+        # multiply x by -1 so bars go left
+        trace.x = [-v for v in trace.x]
+        trace.update(offsetgroup=1)
+        fig.add_trace(trace, row=1, col=1)
+
+    # Update layout for larger fonts
+    fig.update_layout(
+        height=700,
+        width=1250,
+        # title_text="<b>Top Exclusive Patterns: Helpful vs. Unhelpful</b>",
+        # title_font_size=24,
+        font=dict(family="Arial", size=24),
+        margin=dict(l=250, r=50, t=100, b=50),
+        bargap=0.2,
+        xaxis=dict(
+            title_text="Support Difference",
+            title_font_size=30,
+            tickfont_size=14,
+        ),
+        yaxis=dict(
+            automargin=True,
+            tickfont_size=30,
+        )
+    )
+
+    # Reverse the y-axis so largest bars sit at the top
     fig.update_yaxes(autorange="reversed")
 
     # Write to standalone HTML and open
