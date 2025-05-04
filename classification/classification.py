@@ -29,7 +29,7 @@ def classification(df: DataFrame, random_state: int, model: str):
     print("📐 [INFO] Creating training data & labels...")
     y = df['label']
     df = df.select_dtypes(include='number')
-    df = df.drop(columns=['label', 'userful', ], errors='ignore')
+    df = df.drop(columns=['label', 'useful', ], errors='ignore')
     X = df.fillna(0)
     print(df.head(10))
 

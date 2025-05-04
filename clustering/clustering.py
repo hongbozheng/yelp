@@ -126,7 +126,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--top_k",
-        "-t",
+        "-k",
         type=int,
         required=True,
         help="Top-k for one-hot encoding",
