@@ -225,21 +225,24 @@ if __name__ == "__main__":
         "--directory",
         "-d",
         type=str,
-        required=True,
+        required=False,
+        default = 'data',
         help="Directory of the Yelp dataset",
     )
     parser.add_argument(
         "--start_date",
         "-s",
         type=str,
-        required=True,
+        required=False,
+        default = '2019-01-01',
         help="Start date to filter the Yelp dataset",
     )
     parser.add_argument(
         "--min_review",
         "-m",
         type=int,
-        required=True,
+        required=False,
+        default = 20,
         help="Minimum number of reviews",
     )
     args = parser.parse_args()

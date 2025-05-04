@@ -14,7 +14,7 @@ import seaborn as sns
 warnings.filterwarnings("ignore", category=UserWarning)
 
 # Define the path to the complete Yelp dataset
-data_path = "yelp/"  # Modify this path to the location of your complete Yelp dataset
+data_path = "data/"  # Modify this path to the location of your complete Yelp dataset
 
 # ---------------------------
 # 1. Preprocessing (Using the complete business dataset)

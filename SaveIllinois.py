@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 # 定义数据路径 (请修改为你的数据集目录)
-data_path = "yelp/"  # 原始数据路径
+data_path = "data/"  # 原始数据路径
 output_path = "yelp_illinois/"  # 用于存储 Illinois 数据的文件夹
 
 # 如果不存在文件夹，则创建
