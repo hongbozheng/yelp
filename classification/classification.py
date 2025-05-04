@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
-from utils.utils import review_feature
+from utils.utils import review_feature, balance_classes
 from xgboost import XGBClassifier
 
 
@@ -58,7 +58,7 @@ def classification(df: DataFrame, random_state: int, model: str):
     y_prob = clf.predict_proba(X_test)[:, 1]
 
     print("📊 Classification Report:")
-    print(classification_report(y_test, y_pred))
+    print(classification_report(y_test, y_pred, digits=4))
 
     print("📉 Confusion Matrix:")
     print(confusion_matrix(y_test, y_pred))
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "--min",
         "-u",
-        type=int,
+        type=float,
         required=True,
         help="Minimum number of useful",
     )
@@ -106,5 +106,7 @@ if __name__ == '__main__':
         top_k=top_k,
         min_useful=min_useful,
     )
+
+    df = balance_classes(df=df, seed=42)
 
     classification(df=df, random_state=42, model=model)

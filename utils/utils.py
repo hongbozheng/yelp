@@ -107,6 +107,26 @@ def review_feature(
     return df, top_cats
 
 
+def balance_classes(df: DataFrame, seed=42) -> DataFrame:
+    class_0 = df[df['label'] == 0]
+    class_1 = df[df['label'] == 1]
+
+    class_0 = class_0.sample(n=len(class_1), random_state=seed)
+    df = pd.concat(objs=[class_0, class_1], axis=0) \
+        .sample(frac=1, random_state=seed).reset_index(drop=True)
+
+    total = df['label'].shape[0]
+    pos = (df['label'] == 1).sum()
+    neg = (df['label'] == 0).sum()
+    print(f"📊 [INFO] Label Distribution:")
+    print(f"[INFO] ➤ Helpful     [1]: {pos} {pos / total:.4%}")
+    print(f"[INFO] ➤ Not helpful [0]: {neg} {neg / total:.4%}")
+
+    print(f"✅ [INFO] Final review feature shape {df.shape}")
+
+    return df
+
+
 def rule_feature(
         df: DataFrame,
         exclude_cols: List[str],
