@@ -21,6 +21,23 @@ from sklearn.metrics import silhouette_score
 from utils.utils import user_feature, business_feature
 
 
+def filter_outlier(df: DataFrame, thres: float) -> DataFrame:
+    df = df.drop(
+        columns=['user_id', 'label', 'business_id', 'categories'],
+        errors='ignore',
+    )
+    # Compute z-scores
+    z_scores = (df - df.mean()) / df.std()
+
+    # Find rows where any feature has z-score beyond threshold
+    is_outlier = (np.abs(z_scores) >= thres).any(axis=1)
+    df = df[~is_outlier]
+
+    print(f"🔍 [INFO] Detected {is_outlier.sum()} outlier rows (z ≥ {thres})")
+
+    return df
+
+
 def kmeans(
         df: DataFrame,
         k_range: List[int],
@@ -50,7 +67,7 @@ def kmeans(
             best_k = k
             best_score = score
             best_labels = labels
-        # if k == 6:
+        # if k == 3:
         #     best_k = k
         #     best_score = score
         #     best_labels = labels
@@ -162,8 +179,10 @@ if __name__ == "__main__":
     #     useful_thres=1.2,
     # )
 
+    df = filter_outlier(df=df, thres=2.0)
+
     df, _, _ = kmeans(
-        df=df, k_range=[2, 8], random_state=42, method="t-SNE", perplexity=35
+        df=df, k_range=[2, 8], random_state=42, method="PCA", perplexity=35
     )
 
     profile = cluster_profile(df)
