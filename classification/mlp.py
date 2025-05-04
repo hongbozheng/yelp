@@ -12,7 +12,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import compute_class_weight
 from torch.optim import SGD
 from torch.utils.data import DataLoader, TensorDataset
-from utils.utils import review_feature
+from utils.utils import review_feature, balance_classes
 
 
 class MLP(nn.Module):
@@ -73,9 +73,11 @@ def train_mlp(df, epochs=20, batch_size=64, lr=1e-2):
     test_loader = DataLoader(test_ds, batch_size=batch_size)
 
     model = MLP(in_ch=X.shape[1], out_ch=1, p=0.3)
-    weights = compute_class_weight(class_weight='balanced', classes=[0, 1], y=y)
-    pos_weight = torch.tensor([weights[1] / weights[0]])
-    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    # uncomment if class balance is needed
+    # weights = compute_class_weight(class_weight='balanced', classes=[0, 1], y=y)
+    # pos_weight = torch.tensor([weights[1] / weights[0]])
+    # criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    criterion = nn.BCEWithLogitsLoss(pos_weight=None)
     optimizer = SGD(model.parameters(), lr=lr)
 
     print("🧠 [INFO] Training model...")
@@ -144,4 +146,6 @@ if __name__ == "__main__":
         min_useful=min_useful,
     )
 
-    _ = train_mlp(df=df, epochs=20, batch_size=1024, lr=5e-1)
+    df = balance_classes(df=df, seed=42)
+
+    _ = train_mlp(df=df, epochs=100, batch_size=1024, lr=5e-1)

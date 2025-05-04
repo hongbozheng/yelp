@@ -179,7 +179,7 @@ if __name__ == "__main__":
     #     useful_thres=1.2,
     # )
 
-    df = filter_outlier(df=df, thres=2.0)
+    df = filter_outlier(df=df, thres=3.0)
 
     df, _, _ = kmeans(
         df=df, k_range=[2, 8], random_state=42, method="PCA", perplexity=35
