@@ -19,7 +19,7 @@ from xgboost import XGBClassifier
 MODELS = {
     'Logistic': LogisticRegression(max_iter=1000),
     'RandomForest': RandomForestClassifier(),
-    'SVM': SVC(kernel='linear', probability=True),
+    'SVM': SVC(kernel='rbf', probability=True),
     'KNN': KNeighborsClassifier(),
     'XGBoost': XGBClassifier(use_label_encoder=False, eval_metric='logloss')
 }

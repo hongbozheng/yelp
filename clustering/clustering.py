@@ -59,7 +59,7 @@ def kmeans(
     print(f"🏆 [INFO] Best k = {best_k} with Silhouette Score = {best_score:.4f}")
 
     # Project to 2D with t-SNE or PCA
-    print(f"📐 [INFO] Projecting with {method.upper()} for 2D visualization...")
+    print(f"📐 [INFO] Projecting with {method} for 2D visualization...")
     if method == "t-SNE":
         model = TSNE(
             n_components=2,

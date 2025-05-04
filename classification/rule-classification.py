@@ -12,7 +12,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import argparse
 from mlxtend.frequent_patterns import apriori, association_rules, fpgrowth
 from sklearn.metrics import classification_report, confusion_matrix
-from utils.utils import review_feature, rule_feature
+from utils.utils import review_feature, balance_classes, rule_feature
 
 
 FEATURES = [
@@ -103,7 +103,7 @@ def rule_classifier(df, rules):
     df['rule_pred'] = review_feature_sets.apply(match_review).astype(int)
 
     print("📊 [INFO] Rule-Based Classification Report:")
-    print(classification_report(df['label'], df['rule_pred']))
+    print(classification_report(df['label'], df['rule_pred'], digits=4))
     print(confusion_matrix(df['label'], df['rule_pred']))
 
     return df
@@ -164,6 +164,8 @@ if __name__ == "__main__":
     )
 
     df = rule_feature(df=df, exclude_cols=top_cats, percentile=0.80)
+
+    df = balance_classes(df=df, seed=42)
 
     rules, top_cats = mine_rule(
         df=df,
