@@ -42,8 +42,8 @@ We filter to:
 
 ### 💾 Output
 
-- A `merged_df` containing structured features per review
-- A `user_df` containing aggregated behavior features per user
+- A `df` containing structured features per review merged and averaged with user
+features
 
 ---
 
@@ -98,20 +98,29 @@ We cluster users by their **review behavior**.
 
 ## 🎯 Phase 4: Review Helpfulness Classification
 
-We predict whether a review is **helpful** (i.e., `useful ≥ 3`) using multiple techniques.
+We predict whether a review is **helpful** (i.e., `useful ≥ 2`, `avg_useful ≥ 1.2`)
+using multiple techniques.
 
 ### ✅ Methods
 
-1. **Logistic Regression, Random Forest**  
-   (Structured features only)
-
-2. **TF-IDF + Metadata Hybrid**  
-   (Add review text as sparse features)
-
-3. **Rule-Based Classifier from Association Rules**  
+1. **Rule-Based Classifier from Association Rules**  
    ("If review includes `Bars` + `Long text` → likely helpful")
 
-4. **Evaluation**  
+2. **Logistic Regression**  
+   (Structured features only)
+
+3. **Random Forest**
+
+4. **XGBoost**
+
+5. **SVM**
+
+6. **KNN**
+
+7. **TF-IDF + Metadata Hybrid**  
+   (Add review text as sparse features)
+
+8. **Evaluation**  
    - Accuracy, F1, Precision/Recall
    - Confusion Matrix, ROC-AUC
    - Rule Coverage vs. ML Performance
@@ -124,6 +133,7 @@ We predict whether a review is **helpful** (i.e., `useful ≥ 3`) using multiple
 yelp/
 │
 ├── classification/                          # 🎯 Predicting review helpfulness (label: useful >= 3)
+│   ├── mlp.py                               # DL classifiers: Multi-Layer Perceptron
 │   ├── classification.py                    # ML classifiers: Logistic Regression, Random Forest, XGBoost using review + user + business features
 │   └── rule-classification.py               # Rule-based classifier using association rules mined from helpful reviews
 │
@@ -140,11 +150,8 @@ yelp/
 │   └── user.json                            # Filtered users with >= 20 reviews, and their profile statistics
 │
 ├── pattern-mining/                          # 📊 Association rule mining on category co-occurrence and user behavior
-│   ├── constraint-freq-itemset.py           # Constraint-based frequent pattern mining (e.g., must contain "Bars", "Sushi Bars")
-│   ├── diverse-freq-itemset.py              # Redundancy-aware top-k itemset mining using clustering + Jaccard distance
-│   ├── freq-itemset.py                      # Core Apriori mining with one-hot encoding of business categories
-│   ├── helpful-vs-unhelpful.py              # Compare frequent itemsets in helpful vs. unhelpful reviews (behavioral contrast mining)
-│   └── region-freq-itemset.py               # Frequent pattern mining grouped by city; reveals regional preferences
+│   ├── helpfulness.py                       # Constraint-based frequent pattern mining (e.g., must contain "Bars", "Sushi Bars")
+│   └── city-itemset.py                      # Constraint-based frequent pattern mining grouped by city; reveals regional preferences
 │
 ├── utils/                                   # 🧰 Common tools, loaders, and helper functions
 │   └── utils.py                             # Reusable functions: data loading, merging, review length, category encoding, visualization
@@ -191,12 +198,11 @@ yelp/
 ## 📣 Acknowledgments
 
 - Yelp Open Dataset
-- CS412 Faculty for incredible guidance
 - Open-source contributors to `mlxtend`, `scikit-learn`, `plotly`
 
 ---
 
 ## 📬 Contact
 
-> *This project was developed by [Your Name], a student of UIUC CS412.*  
+> *This project was developed by [Your Name].*  
 > For questions or collaboration ideas, please reach out at: **your.email@domain.com**

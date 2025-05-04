@@ -87,7 +87,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "--model",
         "-m",
-        choices=['Logistic', 'RandomForest', 'SVM', 'KNN', 'XGBoost'],
+        choices=['Logistic', 'KNN', 'RandomForest', 'SVM', 'XGBoost'],
         type=str,
         required=True,
         help="Model to use",
