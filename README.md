@@ -4,10 +4,10 @@
 
 This project explores real-world data mining techniques on the **Yelp Academic Dataset**, applying concepts learned in **CS412: Introduction to Data Mining**. The pipeline performs:
 
-* 🔄 Data Preprocessing & Feature Engineering
-* 📊 Frequent Pattern Mining
-* 📈 User Clustering
-* 🎯 Review Helpfulness Classification
+- 🔄 Data Preprocessing & Feature Engineering
+- 📊 Frequent Pattern Mining
+- 📈 User Clustering
+- 🎯 Review Helpfulness Classification
 
 The analysis targets discovering **reviewer behavior patterns**, segmenting users by activity, and **predicting helpful reviews** — all grounded in scalable data mining practices.
 
@@ -17,17 +17,17 @@ The analysis targets discovering **reviewer behavior patterns**, segmenting user
 
 We use a filtered subset of the [Yelp Open Dataset](https://www.yelp.com/dataset) with `preprocess.py`:
 
-* `review.json`: Review content, star ratings, feedback
-* `business.json`: Business metadata including categories
-* `user.json`: User-level metadata (review count, avg stars, etc.)
-* `checkin.json`, `tip.json`: Optional behavioral metadata
+- `review.json`: Review content, star ratings, feedback
+- `business.json`: Business metadata including categories
+- `user.json`: User-level metadata (review count, avg stars, etc.)
+- `checkin.json`, `tip.json`: Optional behavioral metadata
 
 We filter to:
 
-* ✅ Top 10 cities by total review count
-* ✅ Top categories (e.g., Restaurants, Bars, Cafes)
-* ✅ Active users (≥ 20 reviews)
-* ✅ Reviews after 2019-01-01
+- ✅ Top 10 cities by total review count
+- ✅ Top categories (e.g., Restaurants, Bars, Cafes)
+- ✅ Active users (≥ 20 reviews)
+- ✅ Reviews after 2019-01-01
 
 ---
 
@@ -35,15 +35,15 @@ We filter to:
 
 ### ✅ Key Steps
 
-* Filter and join `review`, `business`, and `user` datasets
-* Extract review metadata: length, usefulness, date
-* Create binary category flags (e.g., `%Bars`, `%Sushi Bars`)
-* Add user statistics: `avg_stars`, `fans`, `review_count`
-* Add behavioral metadata: `tip_count`, `checkins`, `review_variance`
+- Filter and join `review`, `business`, and `user` datasets
+- Extract review metadata: length, usefulness, date
+- Create binary category flags (e.g., `%Bars`, `%Sushi Bars`)
+- Add user statistics: `avg_stars`, `fans`, `review_count`
+- Add behavioral metadata: `tip_count`, `checkins`, `review_variance`
 
 ### 💾 Output
 
-* A `df` containing structured features per review merged and averaged with user features
+- A `df` containing structured features per review merged and averaged with user features
 
 ---
 
@@ -76,10 +76,10 @@ We cluster users by their **review behavior**.
 
 ### ✅ Features Engineered
 
-* `avg_stars`, `review_count`, `star_variance`
-* `% category engagement` (`%Bars`, `%Cafes`, etc.)
-* `review_consistency`, `tip_count`, `checkin_count`
-* `unique_businesses`, `active_years`
+- `avg_stars`, `review_count`, `star_variance`
+- `% category engagement` (`%Bars`, `%Cafes`, etc.)
+- `review_consistency`, `tip_count`, `checkin_count`
+- `unique_businesses`, `active_years`
 
 ### ✅ Methods
 
@@ -89,10 +89,9 @@ We cluster users by their **review behavior**.
 
 ### 📊 Evaluation
 
-* Silhouette scores
-* Cluster centroids
-* PCA/t-SNE visualization
-* Outlier detection (DBSCAN `-1` labels)
+- Silhouette scores
+- Cluster centroids
+- PCA/t-SNE visualization
 
 ---
 
@@ -106,7 +105,6 @@ We predict whether a review is **helpful** (i.e., `useful ≥ 2`, `avg_useful �
    ("If review includes `Bars` + `Long text` → likely helpful")
 
 2. **Logistic Regression**
-   (Structured features only)
 
 3. **Random Forest**
 
@@ -121,9 +119,9 @@ We predict whether a review is **helpful** (i.e., `useful ≥ 2`, `avg_useful �
 
 8. **Evaluation**
 
-   * Accuracy, F1, Precision/Recall
-   * Confusion Matrix, ROC-AUC
-   * Rule Coverage vs. ML Performance
+   - Accuracy, F1, Precision/Recall
+   - Confusion Matrix, ROC-AUC
+   - Rule Coverage vs. ML Performance
 
 ---
 
@@ -131,7 +129,7 @@ We predict whether a review is **helpful** (i.e., `useful ≥ 2`, `avg_useful �
 
 ### ✅ Python Version
 
-* Python 3.10+
+- Python 3.10+
 
 ### ✅ Required Packages
 
@@ -164,29 +162,27 @@ sentence-transformers
 ### 1. Preprocess Yelp Dataset
 
 ```
-python3 preprocess.py 
+python preprocess.py
 ```
 
 ### 2. Run Pattern Mining
 
 ```
-python3 pattern-mining/helpfulness.py
+python pattern-mining/helpfulness.py
 ```
 
 ### 3. Run Clustering
 
 ```
 python3 clustering/clustering.py
-python3 clustering/hierach-clustering.py
-python3 clustering/dbscan.py
 ```
 
 ### 4. Run Classification
 
 ```
 python3 classification/classification.py
-python3 classification/rule-classification.py
 python3 classification/mlp.py
+python3 classification/rule-classification.py
 ```
 
 ---
