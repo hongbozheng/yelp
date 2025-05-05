@@ -85,7 +85,7 @@ def train_mlp(df, epochs=20, batch_size=64, lr=1e-2):
     pos_weight = torch.tensor([weights[1] / weights[0]], dtype=torch.float, device=device)
 
     criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-    model = MLP(in_ch=X.shape[1], out_ch=1, p=0.3)
+    model = MLP(in_ch=X.shape[1], out_ch=1, p=0.1)
     # uncomment if class balance is needed
     # weights = compute_class_weight(class_weight='balanced', classes=[0, 1], y=y)
     # pos_weight = torch.tensor([weights[1] / weights[0]])
