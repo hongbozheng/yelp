@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -86,6 +85,12 @@ def train_mlp(df, epochs=20, batch_size=64, lr=1e-2):
     pos_weight = torch.tensor([weights[1] / weights[0]], dtype=torch.float, device=device)
 
     criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    model = MLP(in_ch=X.shape[1], out_ch=1, p=0.3)
+    # uncomment if class balance is needed
+    # weights = compute_class_weight(class_weight='balanced', classes=[0, 1], y=y)
+    # pos_weight = torch.tensor([weights[1] / weights[0]])
+    # criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    criterion = nn.BCEWithLogitsLoss(pos_weight=None)
     optimizer = SGD(model.parameters(), lr=lr)
 
     # 5) Training loop
@@ -140,42 +145,33 @@ def train_mlp(df, epochs=20, batch_size=64, lr=1e-2):
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument(
-    #     "-k", "--top_k",
-    #     type=int, required=True,
-    #     help="Top-k for one-hot encoding"
-    # )
-    # parser.add_argument(
-    #     "-u", "--min",
-    #     type=int, required=True,
-    #     help="Minimum number of useful"
-    # )
-    # parser.add_argument(
-    #     "--epochs", "-e",
-    #     type=int, default=20,
-    #     help="Number of training epochs"
-    # )
-    # parser.add_argument(
-    #     "--batch_size", "-b",
-    #     type=int, default=64,
-    #     help="Batch size"
-    # )
-    # parser.add_argument(
-    #     "--lr", "-l",
-    #     type=float, default=1e-2,
-    #     help="Learning rate"
-    # )
-    # args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--top_k",
+        "-k",
+        type=int,
+        required=True,
+        help="Top-k for one-hot encoding",
+    )
+    parser.add_argument(
+        "--min",
+        "-u",
+        type=int,
+        required=True,
+        help="Minimum number of useful",
+    )
+    args = parser.parse_args()
+    top_k = args.top_k
+    min_useful = args.min
 
     df, _ = review_feature(
-        review_fp="../data/review.json",
-        business_fp="../data/business.json",
-        user_fp="../data/user.json",
-        checkin_fp="../data/checkin.json",
-        tip_fp="../data/tip.json",
-        top_k=50,
-        min_useful=2,
+        review_fp="data/review.json",
+        business_fp="data/business.json",
+        user_fp="data/user.json",
+        checkin_fp="data/checkin.json",
+        tip_fp="data/tip.json",
+        top_k=top_k,
+        min_useful=min_useful,
     )
     df = balance_classes(df=df, seed=42)
     # call with your chosen hyperparameters
