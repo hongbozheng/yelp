@@ -15,7 +15,7 @@ The analysis targets discovering **reviewer behavior patterns**, segmenting user
 
 ## 📦 Dataset
 
-We use a filtered subset of the [Yelp Open Dataset](https://www.yelp.com/dataset):
+We use a filtered subset of the [Yelp Open Dataset](https://www.yelp.com/dataset) with `preprocess.py`:
 
 - `review.json`: Review content, star ratings, feedback
 - `business.json`: Business metadata including categories
@@ -201,8 +201,3 @@ yelp/
 - Open-source contributors to `mlxtend`, `scikit-learn`, `plotly`
 
 ---
-
-## 📬 Contact
-
-> *This project was developed by [Your Name].*  
-> For questions or collaboration ideas, please reach out at: **your.email@domain.com**

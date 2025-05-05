@@ -19,7 +19,7 @@ from sklearn.neighbors              import KNeighborsClassifier
 from sklearn.svm                    import SVC
 from xgboost                        import XGBClassifier
 
-from utils.utils import review_feature
+from utils.utils import review_feature, balance_classes
 
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
@@ -152,7 +152,7 @@ if __name__ == "__main__":
         top_k=args.top_k,
         min_useful=args.min,
     )
-
+    df = balance_classes(df=df, seed=42)
     classification_text_only(
         df=df,
         random_state=42,
